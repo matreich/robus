@@ -4,10 +4,9 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
@@ -36,7 +35,7 @@ public class LuceneIndex {
         String docsPath = null;
         boolean create = true;
 
-        indexPath = "/Users/matthias/Documents/workspace/robus/src/main/resources/indexDemo";
+        indexPath = "/Users/matthias/Documents/workspace/robus/src/main/resources/indexRobus";
         docsPath = "/Volumes/Daten/Robus/Resources/TrecHtmlDemo/";
 
         /*for(int i=0;i<args.length;i++) {
@@ -69,7 +68,7 @@ public class LuceneIndex {
             Directory dir = FSDirectory.open(new File(indexPath));
             Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
             IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
-            //iwc.setSimilarity(new BM25Similarity());
+            iwc.setSimilarity(new RoleSimilarity());
 
             if (create) {
                 // Create a new index in the directory, removing any
@@ -199,13 +198,14 @@ public class LuceneIndex {
                     else
                     {
                         //Index complete text
-                        doc.add(new TextField("contents", new BufferedReader(new InputStreamReader(fis, "UTF-8")), Field.Store.NO));
+                        doc.add(new TextField("contents", new BufferedReader(new InputStreamReader(fis, "UTF-8"))));
                     }
 
                     //Store Role Similarity
                     float roleRelevance = 1.0f;
-                    FloatDocValuesField valuesField = new FloatDocValuesField("RoleRelevane", roleRelevance);
-                    doc.add(valuesField);
+                    Field roleScoreField = new FloatField("roleScore", roleRelevance, Field.Store.YES);
+
+                    doc.add(roleScoreField);
 
                     if (writer.getConfig().getOpenMode() == OpenMode.CREATE) {
                         // New index, so we just add the document (no old document can be there):

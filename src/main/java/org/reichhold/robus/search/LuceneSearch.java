@@ -1,12 +1,5 @@
 package org.reichhold.robus.search;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Date;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -14,13 +7,12 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
+
+import java.io.*;
+import java.util.Date;
 
 /** Simple command-line based search demo. */
 public class LuceneSearch {
@@ -39,7 +31,8 @@ public class LuceneSearch {
             System.exit(0);
         }
 
-        String index = "/Users/matthias/Documents/workspace/robus/src/main/resources/index";
+        //String index = "/Users/matthias/Documents/workspace/robus/src/main/resources/indexDemo";
+        String index = "/Users/matthias/Documents/workspace/robus/src/main/resources/indexRobus";
         String field = "contents";
         String queries = null;
         int repeat = 0;
@@ -80,7 +73,7 @@ public class LuceneSearch {
         IndexSearcher searcher = new IndexSearcher(reader);
 
 
-        //searcher.setSimilarity(new BM25Similarity());
+        searcher.setSimilarity(new RoleSimilarity());
 
         Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
 
@@ -154,8 +147,14 @@ public class LuceneSearch {
 
         // Collect enough docs to show 5 pages
         //searcher.setSimilarity(BM25Similarity)
+        //org.apache.lucene.search.ScoringRewrite
+
+        //searcher.setSimilarity(org.apache.lucene.search.similarities.);
         TopDocs results = searcher.search(query, 5 * hitsPerPage);
         ScoreDoc[] hits = results.scoreDocs;
+
+        //Explanation exp = searcher.explain(query, 0);
+        //System.out.println(exp.getDescription());
 
         int numTotalHits = results.totalHits;
         System.out.println(numTotalHits + " total matching documents");
@@ -189,7 +188,7 @@ public class LuceneSearch {
                 String path = doc.get("path");
                 if (path != null)
                 {
-                    System.out.println((i+1) + ". " + path + " score=" + hits[i].score);
+                    System.out.println((i+1) + ". " + path + " score=" + hits[i].score + " roleRelevance=" + doc.getField("roleScore").numericValue());
                     String title = doc.get("title");
                     if (title != null) {
                         System.out.println("   Title: " + doc.get("title"));

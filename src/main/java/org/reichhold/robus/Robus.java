@@ -1,7 +1,6 @@
 package org.reichhold.robus;
 
 import org.reichhold.robus.search.LuceneIndex;
-import org.reichhold.robus.search.RoleSimilarity;
 
 import java.util.Scanner;
 
@@ -23,7 +22,7 @@ public class Robus {
             crawler.setTokens(input);
         } */
 
-        System.out.print("Would you like to receive job details (y/n)?");
+        /*System.out.print("Would you like to receive job details (y/n)?");
         input = in.nextLine();
 
         if(input.equals("y"))
@@ -33,17 +32,19 @@ public class Robus {
             DataCleaner cleaner = new DataCleaner();
             cleaner.createCleanJobs();
         }
+        */
 
-        System.out.print("Would you like to create the Lucene Index (y/n)?");
+
+        /*System.out.print("Would you like to create the Lucene Index (y/n)?");
         input = in.nextLine();
 
         if(input.equals("y"))
-        {
-            LuceneIndex indexer = new LuceneIndex();
-            indexer.createIndex();
-        }
+        { */
+        LuceneIndex indexer = new LuceneIndex();
+        indexer.createIndex();
 
-        RoleSimilarity sim = new RoleSimilarity();
+
+        //RoleSimilarity sim = new RoleSimilarity();
         //sim.computeCosSim();
 
         //Split TREC archive files into single HTML files

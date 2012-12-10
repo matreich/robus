@@ -1,14 +1,7 @@
 package org.reichhold.robus.search;
 
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.Fields;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Terms;
-import org.apache.lucene.store.FSDirectory;
-
-import java.io.File;
-import java.io.IOException;
+import org.apache.lucene.search.similarities.BasicStats;
+import org.apache.lucene.search.similarities.SimilarityBase;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,9 +10,18 @@ import java.io.IOException;
  * Time: 16:28
  * To change this template use File | Settings | File Templates.
  */
-public class RoleSimilarity {
+public class RoleSimilarity extends SimilarityBase {
+    @Override
+    protected float score(BasicStats basicStats, float freq, float docLen) {
+        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+    }
 
-    String index;
+    @Override
+    public String toString() {
+        return "org.reichhold.robus.search.RoleSimilarity";
+    }
+
+    /*String index;
 
     public RoleSimilarity()
     {
@@ -45,6 +47,6 @@ public class RoleSimilarity {
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-    }
+    }*/
 
 }
