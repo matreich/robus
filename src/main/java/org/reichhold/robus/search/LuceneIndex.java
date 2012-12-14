@@ -68,7 +68,7 @@ public class LuceneIndex {
             Directory dir = FSDirectory.open(new File(indexPath));
             Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
             IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
-            iwc.setSimilarity(new RoleSimilarity());
+            //iwc.setSimilarity(new RoleSimilarity());
 
             if (create) {
                 // Create a new index in the directory, removing any
@@ -202,7 +202,7 @@ public class LuceneIndex {
                     }
 
                     //Store Role Similarity
-                    float roleRelevance = 1.1f;
+                    float roleRelevance = 1.2f;
                     Field roleScoreField = new FloatField("roleScore", roleRelevance, Field.Store.YES);
 
                     doc.add(roleScoreField);

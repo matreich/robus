@@ -7,15 +7,22 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
 import java.io.*;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.TreeMap;
 
 /** Simple command-line based search demo. */
 public class LuceneSearch {
+
+    private static String roleName = "roleScore";
 
     public LuceneSearch() throws ParseException {}
 
@@ -72,8 +79,7 @@ public class LuceneSearch {
         IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(index)));
         IndexSearcher searcher = new IndexSearcher(reader);
 
-
-        searcher.setSimilarity(new RoleSimilarity());
+        //searcher.setSimilarity(new RoleSimilarity());
 
         Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
 
@@ -146,16 +152,14 @@ public class LuceneSearch {
     {
 
         // Collect enough docs to show 5 pages
-        //searcher.setSimilarity(BM25Similarity)
-        //org.apache.lucene.search.ScoringRewrite
 
-        //searcher.setSimilarity(org.apache.lucene.search.similarities.);
-        TopDocs results = searcher.search(query, 5 * hitsPerPage);
-        ScoreDoc[] hits = results.scoreDocs;
-
-        Explanation e = searcher.explain(query, 1);
+        //Explanation e = searcher.explain(query, 1);
         //Explanation exp = searcher.explain(query, 0);
         //System.out.println(exp.getDescription());
+
+        TopDocs results = doRoleSearch(searcher, query, hitsPerPage);
+
+        ScoreDoc[] hits = results.scoreDocs;
 
         int numTotalHits = results.totalHits;
         System.out.println(numTotalHits + " total matching documents");
@@ -186,10 +190,11 @@ public class LuceneSearch {
                 }
 
                 Document doc = searcher.doc(hits[i].doc);
+
                 String path = doc.get("path");
                 if (path != null)
                 {
-                    System.out.println((i+1) + ". " + path + " score=" + hits[i].score + " roleRelevance=" + doc.getField("roleScore").numericValue());
+                    System.out.println((i+1) + ". " + path + " score=" + hits[i].score + "; " + roleName + "=" + doc.getField(roleName).numericValue());
                     String title = doc.get("title");
                     if (title != null) {
                         System.out.println("   Title: " + doc.get("title"));
@@ -199,7 +204,6 @@ public class LuceneSearch {
                 {
                     System.out.println((i+1) + ". " + "No path for this document");
                 }
-
             }
 
             if (!interactive || end == 0)
@@ -247,5 +251,69 @@ public class LuceneSearch {
                 end = Math.min(numTotalHits, start + hitsPerPage);
             }
         }
+    }
+
+    private static TopDocs doRoleSearch(IndexSearcher searcher, Query query, int hitsPerPage) throws IOException {
+
+        TopDocs results = searcher.search(query, 5 * hitsPerPage);
+
+        ScoreDoc[] hits = results.scoreDocs;
+
+        if (hits.length == 0) {
+            return results;
+        }
+
+        HashMap<Integer, Float> roleScores = new HashMap<Integer, Float>();
+        Integer id = 0;
+
+        for(ScoreDoc hit : hits) {
+            id = hit.doc;
+            roleScores.put(id, (Float) searcher.doc(id).getField(roleName).numericValue());
+        }
+
+        //sort docs by roleScores..
+        ScoreComparator comparator =  new ScoreComparator(roleScores);
+        TreeMap<Integer, Float> sortedRoleScores = new TreeMap<Integer, Float>(comparator);
+        sortedRoleScores.putAll(roleScores);
+
+        //copy sorted (ranked) doc ids into an array
+        //todo: check if .keySet.toArray preserves the correct (sorted) positions
+        Integer[] roleRankedDocIds = sortedRoleScores.keySet().toArray(new Integer[0]);
+
+        //compute merged score
+        float weight = 1.0f;
+        for (int i=0; i<hits.length; i++) {
+            System.out.println("Ranking doc " + hits[i].doc);
+
+            int defaultRank = i + 1;
+            System.out.println("default rank: " + defaultRank);
+
+            float defaultScore = 1.0f / (defaultRank + 1);
+            System.out.println("default score: " + defaultScore);
+
+            float roleScore = 0;
+
+            int roleRank = 0;
+            for (int j=0; j<roleRankedDocIds.length; j++) {
+                if (hits[i].doc == roleRankedDocIds[j]) {
+                    roleRank = j + 1;
+                    break;
+                }
+            }
+
+            if (roleRank > 0) {
+                roleScore = 1.0f / (roleRank + 1);
+            }
+
+            System.out.println("role rank: " + roleRank);
+            System.out.println("role score: " + roleScore);
+
+            float mergedScore = defaultScore + roleScore * weight;
+            System.out.println("merged score: " + mergedScore);
+
+            hits[i].score = mergedScore;
+        }
+
+        return results;
     }
 }

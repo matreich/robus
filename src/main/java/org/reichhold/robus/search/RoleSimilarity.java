@@ -18,6 +18,7 @@ public class RoleSimilarity extends DefaultSimilarity {
     @Override
     public float coord(int overlap, int maxOverlap)  {
         float f = super.coord(overlap, maxOverlap);
+        System.out.println("coord = " + f);
         return f;
     }
 
@@ -31,7 +32,7 @@ public class RoleSimilarity extends DefaultSimilarity {
     @Override
     public float tf(float freq){
         float f = super.tf(freq);
-        System.out.println("TF = " + f);
+        //System.out.println("TF = " + f + "; freq = " + freq);
         return f;
     }
 
