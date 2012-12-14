@@ -202,7 +202,7 @@ public class LuceneIndex {
                     }
 
                     //Store Role Similarity
-                    float roleRelevance = 1.0f;
+                    float roleRelevance = 1.5f;
                     Field roleScoreField = new FloatField("roleScore", roleRelevance, Field.Store.YES);
 
                     doc.add(roleScoreField);
