@@ -153,6 +153,7 @@ public class LuceneSearch {
         TopDocs results = searcher.search(query, 5 * hitsPerPage);
         ScoreDoc[] hits = results.scoreDocs;
 
+        Explanation e = searcher.explain(query, 1);
         //Explanation exp = searcher.explain(query, 0);
         //System.out.println(exp.getDescription());
 

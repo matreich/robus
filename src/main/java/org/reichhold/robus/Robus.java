@@ -44,7 +44,7 @@ public class Robus {
         indexer.createIndex();
 
 
-        //RoleSimilarity sim = new RoleSimilarity();
+        //RoleSimilarityBase sim = new RoleSimilarityBase();
         //sim.computeCosSim();
 
         //Split TREC archive files into single HTML files

@@ -1,52 +1,44 @@
 package org.reichhold.robus.search;
 
-import org.apache.lucene.search.similarities.BasicStats;
-import org.apache.lucene.search.similarities.SimilarityBase;
+import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.util.BytesRef;
 
 /**
- * Created with IntelliJ IDEA.
  * User: matthias
- * Date: 11.08.12
- * Time: 16:28
- * To change this template use File | Settings | File Templates.
+ * Date: 10.12.12
  */
-public class RoleSimilarity extends SimilarityBase {
-    @Override
-    protected float score(BasicStats basicStats, float freq, float docLen) {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
-    }
+public class RoleSimilarity extends DefaultSimilarity {
 
     @Override
-    public String toString() {
-        return "org.reichhold.robus.search.RoleSimilarity";
+    public float scorePayload(int doc, int start, int end, BytesRef payload) {
+        float f = super.scorePayload(doc, start, end, payload);
+        return f;
     }
 
-    /*String index;
-
-    public RoleSimilarity()
-    {
-        index = "/Users/matthias/Documents/workspace/robus/src/main/resources/indexDemo";
+    @Override
+    public float coord(int overlap, int maxOverlap)  {
+        float f = super.coord(overlap, maxOverlap);
+        return f;
     }
 
-    public void computeCosSim()
-    {
-        try {
-            IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(index)));
-            for (int i=0; i<reader.maxDoc(); i++) {
+    @Override
+    public float queryNorm(float sumOfSquaredWeights) {
+        float f = super.queryNorm(sumOfSquaredWeights);
+        System.out.println("QueryNorm = " + f);
+        return f;
+    }
 
-                Document doc = reader.document(i);
+    @Override
+    public float tf(float freq){
+        float f = super.tf(freq);
+        System.out.println("TF = " + f);
+        return f;
+    }
 
-                Terms t = reader.getTermVector(i, "contents");
-                Fields f = reader.getTermVectors(i);
-
-                int j =0;
-            }
-
-            int i = 0;
-
-        } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-    }*/
-
+    @Override
+    public float idf(long docFreq, long numDocs) {
+        float f = super.idf(docFreq, numDocs);
+        System.out.println("IDF = " + f);
+        return f;
+    }
 }

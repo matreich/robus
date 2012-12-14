@@ -38,11 +38,11 @@
     <orderEntry type="library" name="Maven: org.hamcrest:hamcrest-core:1.1" level="project" />
     <orderEntry type="library" name="Maven: org.jsoup:jsoup:1.6.3" level="project" />
     <orderEntry type="library" name="Maven: com.carrotsearch.randomizedtesting:randomizedtesting-runner:1.6.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.lucene:lucene-core:4.0.0-ALPHA" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.lucene:lucene-queries:4.0.0-ALPHA" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.lucene:lucene-analyzers-common:4.0.0-ALPHA" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.lucene:lucene-queryparser:4.0.0-ALPHA" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.lucene:lucene-sandbox:4.0.0-ALPHA" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.lucene:lucene-core:4.0.0-BETA" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.lucene:lucene-queries:4.0.0-BETA" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.lucene:lucene-analyzers-common:4.0.0-BETA" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.lucene:lucene-queryparser:4.0.0-BETA" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.lucene:lucene-sandbox:4.0.0-BETA" level="project" />
     <orderEntry type="library" name="Maven: jakarta-regexp:jakarta-regexp:1.4" level="project" />
   </component>
 </module>
