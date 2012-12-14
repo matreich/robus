@@ -28,8 +28,8 @@
     <file path="$PROJECT_DIR$/../xport/LIDS/src/test/resources/META-INF/xport/persistence.xml" changelist="17b381cf-75b4-4129-b323-bef4595f82a6" time="1355242068944" ignored="false" />
     <file path="$PROJECT_DIR$/../xport/LIDS/src/test/java/at/imendo/lids/routes/LidsStationToPsiStationRoutes.xml" changelist="17b381cf-75b4-4129-b323-bef4595f82a6" time="1355243271932" ignored="false" />
     <file path="/LidsStationToPsiStationRoutes.xml" changelist="17b381cf-75b4-4129-b323-bef4595f82a6" time="1355243243988" ignored="false" />
-    <file path="/Dummy.txt" changelist="17b381cf-75b4-4129-b323-bef4595f82a6" time="1355486749354" ignored="false" />
-    <file path="/.gitignore" changelist="17b381cf-75b4-4129-b323-bef4595f82a6" time="1355486848957" ignored="false" />
+    <file path="/Dummy.txt" changelist="17b381cf-75b4-4129-b323-bef4595f82a6" time="1355486866968" ignored="false" />
+    <file path="/.gitignore" changelist="17b381cf-75b4-4129-b323-bef4595f82a6" time="1355486909143" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -149,7 +149,7 @@
       <file leaf-file-name=".gitignore" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/.gitignore">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="19" column="6" selection-start="124" selection-end="124" vertical-scroll-proportion="0.49307957">
+            <state line="20" column="7" selection-start="132" selection-end="132" vertical-scroll-proportion="0.51903117">
               <folding />
             </state>
           </provider>
@@ -383,6 +383,20 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="search" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="linkedin2" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="robus" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value=".idea" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -646,7 +660,11 @@
       <created>1355486773335</created>
       <updated>1355486773335</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="just a test">
+      <created>1355486872712</created>
+      <updated>1355486872712</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -888,7 +906,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="19" column="6" selection-start="124" selection-end="124" vertical-scroll-proportion="0.49307957">
+        <state line="20" column="7" selection-start="132" selection-end="132" vertical-scroll-proportion="0.51903117">
           <folding />
         </state>
       </provider>
