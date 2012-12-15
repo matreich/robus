@@ -2,17 +2,15 @@ package org.reichhold.robus;
 
 import org.reichhold.robus.search.LuceneIndex;
 
-import java.util.Scanner;
-
 public class Robus {
     public static void main(String[] args)
     {
-        Scanner in = new Scanner(System.in);
+        /*Scanner in = new Scanner(System.in);
         String input = "";
 
         LinkedInCrawler crawler = new LinkedInCrawler();
 
-        /*System.out.print("Would you like to create a new token (y/n)?");
+        ystem.out.print("Would you like to create a new token (y/n)?");
         input = in.nextLine();
 
         if(input.equals("y"))
@@ -41,8 +39,8 @@ public class Robus {
         if(input.equals("y"))
         { */
         LuceneIndex indexer = new LuceneIndex();
-        indexer.createIndex();
-
+        indexer.createIndexes();
+        indexer.setRoleScores();
 
         //RoleSimilarityBase sim = new RoleSimilarityBase();
         //sim.computeCosSim();

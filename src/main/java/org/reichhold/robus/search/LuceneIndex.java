@@ -3,17 +3,23 @@ package org.reichhold.robus.search;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.*;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.index.Term;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 import org.jsoup.Jsoup;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /** Index all text files under a directory.
  * <p>
@@ -22,36 +28,103 @@ import java.util.Date;
  */
 public class LuceneIndex {
 
-    public LuceneIndex() {}
+    private String defaultIndexPath;
+    private String roleIndexPath;
+    private String docsPath;
 
-    /** Index all text files under a directory. */
-    public void createIndex() {
-        String usage = "java org.apache.lucene.demo.IndexFiles"
-                + " [-index INDEX_PATH] [-docs DOCS_PATH] [-update]\n\n"
-                + "This indexes the documents in DOCS_PATH, creating a Lucene index"
-                + "in INDEX_PATH that can be searched with SearchFiles";
+    public String getDefaultIndexPath() {
+        return defaultIndexPath;
+    }
 
-        String indexPath = "index";
-        String docsPath = null;
-        boolean create = true;
+    public void setDefaultIndexPath(String defaultIndexPath) {
+        this.defaultIndexPath = defaultIndexPath;
+    }
 
-        indexPath = "/Users/matthias/Documents/workspace/robus/src/main/resources/indexRobus";
+    public String getRoleIndexPath() {
+        return roleIndexPath;
+    }
+
+    public void setRoleIndexPath(String roleIndexPath) {
+        this.roleIndexPath = roleIndexPath;
+    }
+
+    public String getDocsPath() {
+        return docsPath;
+    }
+
+    public void setDocsPath(String docsPath) {
+        this.docsPath = docsPath;
+    }
+
+    public LuceneIndex() {
+        defaultIndexPath = "/Users/matthias/Documents/workspace/robus/src/main/resources/defaultIndex";
+        roleIndexPath = "/Users/matthias/Documents/workspace/robus/src/main/resources/roleIndex";
         docsPath = "/Volumes/Daten/Robus/Resources/TrecHtmlDemo/";
+    }
 
-        /*for(int i=0;i<args.length;i++) {
-            if ("-index".equals(args[i])) {
-                indexPath = args[i+1];
-                i++;
-            } else if ("-docs".equals(args[i])) {
-                docsPath = args[i+1];
-                i++;
-            } else if ("-update".equals(args[i])) {
-                create = false;
+
+    public void createIndexes() {
+        createIndex(defaultIndexPath, docsPath, true, false);
+        createIndex(roleIndexPath, docsPath, true, true);
+    }
+
+    public void setRoleScores() {
+        try {
+            IndexReader defaultReader = DirectoryReader.open(FSDirectory.open(new File(defaultIndexPath)));
+            IndexSearcher defaultSearcher = new IndexSearcher(defaultReader);
+            Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
+            String field = "contents";
+
+            String roleVector = "bash Abstract";
+            QueryParser parser = new QueryParser(Version.LUCENE_40, field, analyzer);
+            Query query = parser.parse(roleVector);
+
+            int numberResults = 10;
+
+            TopDocs results = defaultSearcher.search(query, numberResults);
+
+            if (results.totalHits < 1) {
+                System.out.println("Did not find any relevant docs for role.");
             }
-        } */
 
-        if (docsPath == null) {
-            System.err.println("Usage: " + usage);
+            ScoreDoc[] hits = results.scoreDocs;
+
+            //update role scores for alle documents relevant for this role vector
+            List<Document> docs = new ArrayList<Document>();
+            for(ScoreDoc hit : hits) {
+                Document doc = defaultReader.document(hit.doc);
+                Field roleScoreField = new FloatField("roleScore", hit.score, Field.Store.YES);
+                doc.add(roleScoreField);
+                docs.add(doc);
+            }
+
+            updateRoleScores(docs);
+        }
+        catch (ParseException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+    }
+
+    private void updateRoleScores(List<Document> docs) throws IOException {
+        Directory dir = FSDirectory.open(new File(roleIndexPath));
+        Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
+        IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
+        iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
+        IndexWriter writer = new IndexWriter(dir, iwc);
+
+        for (Document doc : docs) {
+            indexDocs(writer, new File(doc.get("path")), true);
+            //writer.updateDocument(new Term("path", doc.get("path")), doc);
+        }
+    }
+
+    /** Index all text/html files under a directory. */
+    private void createIndex(String indexPath, String docsPath, boolean create, boolean setRoleScores) {
+
+        if (docsPath == null || indexPath == null) {
+            System.err.println("indexPath and docsPath may not be null");
             System.exit(1);
         }
 
@@ -68,7 +141,6 @@ public class LuceneIndex {
             Directory dir = FSDirectory.open(new File(indexPath));
             Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
             IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
-            //iwc.setSimilarity(new RoleSimilarity());
 
             if (create) {
                 // Create a new index in the directory, removing any
@@ -87,7 +159,7 @@ public class LuceneIndex {
             // iwc.setRAMBufferSizeMB(256.0);
 
             IndexWriter writer = new IndexWriter(dir, iwc);
-            indexDocs(writer, docDir);
+            indexDocs(writer, docDir, setRoleScores);
 
             // NOTE: if you want to maximize search performance,
             // you can optionally call forceMerge here.  This can be
@@ -123,7 +195,7 @@ public class LuceneIndex {
      * @param file The file to index, or the directory to recurse into to find files to index
      * @throws IOException
      */
-    static void indexDocs(IndexWriter writer, File file)
+    private void indexDocs(IndexWriter writer, File file, boolean setRoleScores)
             throws IOException {
         // do not try to index files that cannot be read
         if (file.canRead()) {
@@ -132,7 +204,7 @@ public class LuceneIndex {
                 // an IO error could occur
                 if (files != null) {
                     for (int i = 0; i < files.length; i++) {
-                        indexDocs(writer, new File(file, files[i]));
+                        indexDocs(writer, new File(file, files[i]), setRoleScores);
                     }
                 }
             }
@@ -201,11 +273,14 @@ public class LuceneIndex {
                         doc.add(new TextField("contents", new BufferedReader(new InputStreamReader(fis, "UTF-8"))));
                     }
 
-                    //Store Role Similarity
-                    float roleRelevance = 1.2f;
-                    Field roleScoreField = new FloatField("roleScore", roleRelevance, Field.Store.YES);
+                    if (setRoleScores) {
+                        //Store Role Similarity
+                        float roleRelevance = 1.0f;
+                        //todo: copmute cosine similarity between document and role vector
+                        Field roleScoreField = new FloatField("roleScore", roleRelevance, Field.Store.YES);
 
-                    doc.add(roleScoreField);
+                        doc.add(roleScoreField);
+                    }
 
                     if (writer.getConfig().getOpenMode() == OpenMode.CREATE) {
                         // New index, so we just add the document (no old document can be there):
@@ -232,4 +307,5 @@ public class LuceneIndex {
             }
         }
     }
+
 }

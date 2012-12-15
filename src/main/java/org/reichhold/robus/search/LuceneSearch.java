@@ -39,7 +39,7 @@ public class LuceneSearch {
         }
 
         //String index = "/Users/matthias/Documents/workspace/robus/src/main/resources/indexDemo";
-        String index = "/Users/matthias/Documents/workspace/robus/src/main/resources/indexRobus";
+        String index = "/Users/matthias/Documents/workspace/robus/src/main/resources/roleIndex";
         String field = "contents";
         String queries = null;
         int repeat = 0;
