@@ -1,4 +1,4 @@
-package org.reichhold.robus.hbm;
+package org.reichhold.robus.model;
 
 /**
  * Created with IntelliJ IDEA.
@@ -19,7 +19,8 @@ public class InitSessionFactory {
 
     static {
         final Configuration cfg = new Configuration();
-        cfg.configure("/org/reichhold/robus/hbm/hibernate.cfg.xml");
+        //cfg.configure("/src/hibernate.cfg.xml");
+        cfg.configure("/hibernate.cfg.xml");
         sessionFactory = cfg.buildSessionFactory();
     }
 

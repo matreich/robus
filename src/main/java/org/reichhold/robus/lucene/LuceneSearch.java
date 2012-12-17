@@ -1,4 +1,4 @@
-package org.reichhold.robus.search;
+package org.reichhold.robus.lucene;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -22,7 +22,7 @@ import java.util.TreeMap;
 /** Simple command-line based search demo. */
 public class LuceneSearch {
 
-    private static String roleName = "roleScore";
+    private static String roleName = "JavaDeveloper";
 
     public LuceneSearch() throws ParseException {}
 

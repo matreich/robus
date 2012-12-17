@@ -1,4 +1,4 @@
-package org.reichhold.robus.search;
+package org.reichhold.robus.lucene;
 
 import org.apache.lucene.search.similarities.BasicStats;
 import org.apache.lucene.search.similarities.SimilarityBase;
@@ -10,6 +10,7 @@ import org.apache.lucene.search.similarities.SimilarityBase;
  * Time: 16:28
  * To change this template use File | Settings | File Templates.
  */
+@Deprecated
 public class RoleSimilarityBase extends SimilarityBase {
     @Override
     protected float score(BasicStats basicStats, float freq, float docLen) {

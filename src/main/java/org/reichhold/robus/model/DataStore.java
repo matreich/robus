@@ -1,4 +1,4 @@
-package org.reichhold.robus.hbm;
+package org.reichhold.robus.model;
 
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -12,31 +12,41 @@ import java.util.List;
  * User: matthias
  * Date: 26.07.12
  * Time: 15:51
- * To change this template use File | Settings | File Templates.
+ * Allows access to database via Hibernate. Configuration see hibernate.cfg.xml
  */
 public class DataStore {
     Session session;
 
     public DataStore ()
     {
+        session = InitSessionFactory.getInstance().openSession();
+    }
+
+    public List<Role> getRolesByOrganisation (String organisation) {
+
+        Transaction tx = session.beginTransaction();
+
+        Query q = session.createQuery( "from Role where organisation = '" + organisation + "'");
+        List<Role> result = q.list();
+
+        tx.commit();
+
+        return result;
     }
 
     public int getNumberOfJobAds()
     {
-        session = InitSessionFactory.getInstance().openSession();
         Transaction tx = session.beginTransaction();
 
         int count = ((Long)session.createQuery("select count(*) from JobAd").uniqueResult()).intValue();
 
         tx.commit();
-        session.close();
 
         return count;
     }
 
     public List<String> getJobAdIds(int start, int limit, boolean withContent)
     {
-        session = InitSessionFactory.getInstance().openSession();
         Transaction tx = session.beginTransaction();
 
         Query q;
@@ -63,7 +73,6 @@ public class DataStore {
         result = q.list();
 
         tx.commit();
-        session.close();
 
         List<String> ids = new ArrayList<String>();
 
@@ -77,26 +86,22 @@ public class DataStore {
 
     public JobAd getJobAdById(String id)
     {
-        session = InitSessionFactory.getInstance().openSession();
         Transaction tx = session.beginTransaction();
 
         JobAd job = (JobAd) session.get(JobAd.class, id);
 
         tx.commit();
-        session.close();
 
         return job;
     }
 
     public void saveOrUpdateJobAd(JobAd j)
     {
-        session = InitSessionFactory.getInstance().openSession();
         Transaction tx = session.beginTransaction();
 
         session.saveOrUpdate(j);
 
         tx.commit();
-        session.close();
     }
 
     public void saveOrUpdateJobAds(List<JobAd> jobs)

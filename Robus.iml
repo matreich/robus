@@ -5,8 +5,9 @@
       <configuration>
         <datasource-map>
           <unit-entry name="hibernate.cfg.xml" />
+          <unit-entry name="org:reichhold:robus:model:hibernate.cfg.xml" />
         </datasource-map>
-        <deploymentDescriptor name="hibernate.cfg.xml" url="file://$MODULE_DIR$/src/main/java/org/reichhold/robus/hbm/hibernate.cfg.xml" />
+        <deploymentDescriptor name="hibernate.cfg.xml" url="file://$MODULE_DIR$/src/main/resources/hibernate.cfg.xml" />
       </configuration>
     </facet>
   </component>

@@ -5,7 +5,7 @@
  * Time: 12:15
  * To change this template use File | Settings | File Templates.
  */
-package org.reichhold.robus.hbm;
+package org.reichhold.robus.model;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;

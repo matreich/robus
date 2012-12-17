@@ -1,4 +1,4 @@
-package org.reichhold.robus.search;
+package org.reichhold.robus.lucene;
 
 import org.apache.lucene.search.similarities.DefaultSimilarity;
 import org.apache.lucene.util.BytesRef;
@@ -7,6 +7,7 @@ import org.apache.lucene.util.BytesRef;
  * User: matthias
  * Date: 10.12.12
  */
+@Deprecated
 public class RoleSimilarity extends DefaultSimilarity {
 
     @Override

@@ -1,4 +1,4 @@
-package org.reichhold.robus.hbm;
+package org.reichhold.robus.model;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

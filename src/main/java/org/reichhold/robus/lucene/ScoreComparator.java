@@ -1,4 +1,4 @@
-package org.reichhold.robus.search;
+package org.reichhold.robus.lucene;
 
 import java.util.Comparator;
 import java.util.Map;

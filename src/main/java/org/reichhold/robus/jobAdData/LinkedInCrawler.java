@@ -1,10 +1,10 @@
-package org.reichhold.robus;
+package org.reichhold.robus.jobAdData;
 
-import org.reichhold.robus.hbm.*;
+import org.reichhold.robus.model.DataStore;
+import org.reichhold.robus.model.JobAd;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.builder.api.LinkedInApi;
 import org.scribe.model.*;
-import org.scribe.model.Token;
 import org.scribe.oauth.OAuthService;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -19,8 +19,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-
-import org.reichhold.robus.hbm.DataStore;
 
 public class LinkedInCrawler {
 
@@ -48,10 +46,10 @@ public class LinkedInCrawler {
     public void setJobDetails()
     {
         //load all active tokens from db
-        List<org.reichhold.robus.hbm.Token> tokens = store.getActiveTokens();
+        List<org.reichhold.robus.model.Token> tokens = store.getActiveTokens();
 
         //for each token
-        for(org.reichhold.robus.hbm.Token t:tokens)
+        for(org.reichhold.robus.model.Token t:tokens)
         {
             //select jobads where title is emtpy
             List<String> ids = store.getJobAdIds(0, 1000, false);
@@ -74,7 +72,7 @@ public class LinkedInCrawler {
         //Token t1 = crawler.requestNewToken("matthias.reichhold@imendo.at");
         //store.saveToken(t1);
 
-        org.reichhold.robus.hbm.Token t2 = requestNewToken(email);
+        org.reichhold.robus.model.Token t2 = requestNewToken(email);
         store.saveToken(t2);
     }
 
@@ -83,7 +81,7 @@ public class LinkedInCrawler {
 
     }
 
-    private org.reichhold.robus.hbm.Token requestNewToken(String user){
+    private org.reichhold.robus.model.Token requestNewToken(String user){
 
         String authUrl = service.getAuthorizationUrl(requestToken);
 
@@ -95,7 +93,7 @@ public class LinkedInCrawler {
 
         Token linkedinToken = service.getAccessToken(requestToken, verifier);
 
-        org.reichhold.robus.hbm.Token myToken = new org.reichhold.robus.hbm.Token();
+        org.reichhold.robus.model.Token myToken = new org.reichhold.robus.model.Token();
         myToken.setUser(user);
         myToken.setToken(linkedinToken.getToken());
         myToken.setSecret(linkedinToken.getSecret());

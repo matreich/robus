@@ -1,4 +1,4 @@
-package org.reichhold.robus;
+package org.reichhold.robus.trecCorpus;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

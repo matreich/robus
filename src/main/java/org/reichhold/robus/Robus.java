@@ -1,6 +1,6 @@
 package org.reichhold.robus;
 
-import org.reichhold.robus.search.LuceneIndex;
+import org.reichhold.robus.lucene.LuceneIndex;
 
 public class Robus {
     public static void main(String[] args)
@@ -10,7 +10,7 @@ public class Robus {
 
         LinkedInCrawler crawler = new LinkedInCrawler();
 
-        ystem.out.print("Would you like to create a new token (y/n)?");
+        system.out.print("Would you like to create a new token (y/n)?");
         input = in.nextLine();
 
         if(input.equals("y"))
@@ -40,10 +40,11 @@ public class Robus {
         { */
         LuceneIndex indexer = new LuceneIndex();
         indexer.createIndexes();
-        indexer.setRoleScores();
+        indexer.computeRoleScores();
+        //indexer.computeRoleScore("JavaDeveloper");
+        //indexer.computeRoleScore("AccountManager");
 
-        //RoleSimilarityBase sim = new RoleSimilarityBase();
-        //sim.computeCosSim();
+        indexer.printAllDocsWithRoleScores();
 
         //Split TREC archive files into single HTML files
         //Trec2Html converter = new Trec2Html();
