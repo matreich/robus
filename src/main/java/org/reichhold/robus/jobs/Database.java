@@ -5,9 +5,7 @@
  * Time: 12:39
  * To change this template use File | Settings | File Templates.
  */
-package org.reichhold.robus.jobAdData;
-
-import org.reichhold.robus.model.JobAd;
+package org.reichhold.robus.jobs;
 
 import java.sql.*;
 import java.util.ArrayList;

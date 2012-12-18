@@ -19,6 +19,19 @@ public class RoleScoreQuery extends CustomScoreQuery {
         //this.setStrict(true); // do not normalize score values from ValueSourceQuery!
     }
 
+    /***
+     * Use RoleScoreQuery(Query subQuery, String roleName)
+     * Does only work, when scoringQuery finds a result for every resutl in subQuery.
+     * @param subQuery the default query
+     * @param scoringQuery the role vector
+     */
+    @Deprecated
+    public RoleScoreQuery(Query subQuery, Query scoringQuery) {
+        super(subQuery, scoringQuery);
+
+        //this.setStrict(true); // do not normalize score values from ValueSourceQuery!
+    }
+
     @Override
     protected CustomScoreProvider getCustomScoreProvider(AtomicReaderContext reader) {
         return new CustomScoreProvider(reader) {

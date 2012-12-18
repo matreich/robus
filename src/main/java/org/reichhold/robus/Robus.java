@@ -41,8 +41,6 @@ public class Robus {
         LuceneIndex indexer = new LuceneIndex();
         indexer.createIndexes();
         indexer.computeRoleScores();
-        //indexer.computeRoleScore("JavaDeveloper");
-        //indexer.computeRoleScore("AccountManager");
 
         indexer.printAllDocsWithRoleScores();
 

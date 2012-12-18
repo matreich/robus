@@ -1,4 +1,4 @@
-package org.reichhold.robus.model;
+package org.reichhold.robus.roles;
 
 import javax.persistence.*;
 

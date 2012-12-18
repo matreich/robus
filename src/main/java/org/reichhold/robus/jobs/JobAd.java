@@ -1,10 +1,17 @@
-package org.reichhold.robus.model;
+/**
+ * Created with IntelliJ IDEA.
+ * User: matthias
+ * Date: 21.07.12
+ * Time: 12:15
+ * To change this template use File | Settings | File Templates.
+ */
+package org.reichhold.robus.jobs;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
 @Entity
-public class CleanJobAd {
+public class JobAd {
     @Id
     String jobId;
     String companyId;
@@ -13,7 +20,7 @@ public class CleanJobAd {
     String description;
     String skills;
 
-    public CleanJobAd() {
+    public JobAd() {
         this.jobId = "";
         this.companyId = "";
         this.companyName = "";
@@ -22,7 +29,7 @@ public class CleanJobAd {
         this.skills = "";
     }
 
-    public CleanJobAd(String JobId, String companyId, String companyName, String title, String description, String skills) {
+    public JobAd(String JobId, String companyId, String companyName, String title, String description, String skills) {
         this.jobId = JobId;
         this.companyId = companyId;
         this.companyName = companyName;

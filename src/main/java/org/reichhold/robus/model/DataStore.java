@@ -3,6 +3,10 @@ package org.reichhold.robus.model;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.reichhold.robus.jobs.CleanJobAd;
+import org.reichhold.robus.jobs.JobAd;
+import org.reichhold.robus.jobs.Token;
+import org.reichhold.robus.roles.Role;
 
 import java.util.ArrayList;
 import java.util.List;

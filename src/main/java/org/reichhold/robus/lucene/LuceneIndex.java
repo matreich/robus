@@ -13,7 +13,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 import org.jsoup.Jsoup;
-import org.reichhold.robus.model.Role;
+import org.reichhold.robus.roles.Role;
 
 import java.io.*;
 import java.util.Date;
@@ -65,7 +65,7 @@ public class LuceneIndex {
     }
 
     public void createIndexes() {
-        createIndex(defaultIndexPath, docsPath, true, false);
+        //createIndex(defaultIndexPath, docsPath, true, false);
         createIndex(roleIndexPath, docsPath, true, true);
     }
 
@@ -80,7 +80,7 @@ public class LuceneIndex {
             IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
             iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 
-            int maxResults = 10;
+            int maxResults = 1000;
             List<Role> roles = roleReader.getRoles();
 
             for (Role role : roles) {

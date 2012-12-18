@@ -1,7 +1,6 @@
-package org.reichhold.robus.jobAdData;
+package org.reichhold.robus.jobs;
 
 import org.reichhold.robus.model.DataStore;
-import org.reichhold.robus.model.JobAd;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.builder.api.LinkedInApi;
 import org.scribe.model.*;
@@ -23,8 +22,8 @@ import java.util.Scanner;
 public class LinkedInCrawler {
 
     OAuthService service = null;
-    Token accessToken = null;
-    Token requestToken;
+    org.scribe.model.Token accessToken = null;
+    org.scribe.model.Token requestToken;
     Database db;
     DataStore store;
 
@@ -46,16 +45,16 @@ public class LinkedInCrawler {
     public void setJobDetails()
     {
         //load all active tokens from db
-        List<org.reichhold.robus.model.Token> tokens = store.getActiveTokens();
+        List<Token> tokens = store.getActiveTokens();
 
         //for each token
-        for(org.reichhold.robus.model.Token t:tokens)
+        for(Token t:tokens)
         {
             //select jobads where title is emtpy
             List<String> ids = store.getJobAdIds(0, 1000, false);
 
             //create access token
-            accessToken = new Token(t.getToken(), t.getSecret());
+            accessToken = new org.scribe.model.Token(t.getToken(), t.getSecret());
             System.out.println("---------------------------------------");
             System.out.println("Generated token for user " + t.getUser());
 
@@ -72,7 +71,7 @@ public class LinkedInCrawler {
         //Token t1 = crawler.requestNewToken("matthias.reichhold@imendo.at");
         //store.saveToken(t1);
 
-        org.reichhold.robus.model.Token t2 = requestNewToken(email);
+        Token t2 = requestNewToken(email);
         store.saveToken(t2);
     }
 
@@ -81,7 +80,7 @@ public class LinkedInCrawler {
 
     }
 
-    private org.reichhold.robus.model.Token requestNewToken(String user){
+    private Token requestNewToken(String user){
 
         String authUrl = service.getAuthorizationUrl(requestToken);
 
@@ -91,9 +90,9 @@ public class LinkedInCrawler {
         Scanner in = new Scanner(System.in);
         Verifier verifier = new Verifier(in.nextLine());
 
-        Token linkedinToken = service.getAccessToken(requestToken, verifier);
+        org.scribe.model.Token linkedinToken = service.getAccessToken(requestToken, verifier);
 
-        org.reichhold.robus.model.Token myToken = new org.reichhold.robus.model.Token();
+        Token myToken = new Token();
         myToken.setUser(user);
         myToken.setToken(linkedinToken.getToken());
         myToken.setSecret(linkedinToken.getSecret());

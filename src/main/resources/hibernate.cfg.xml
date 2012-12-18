@@ -28,11 +28,11 @@
         <!-- Drop and re-create the database schema on startup -->
         <!--<property name="hbm2ddl.auto">update</property>-->
 
-        <mapping class="org.reichhold.robus.model.Token" />
-        <mapping class="org.reichhold.robus.model.JobAd" />
-        <mapping class="org.reichhold.robus.model.CleanJobAd" />
-        <mapping class="org.reichhold.robus.model.Role" />
-        <mapping class="org.reichhold.robus.model.RoleTerm" />
+        <mapping class="org.reichhold.robus.jobs.Token" />
+        <mapping class="org.reichhold.robus.jobs.JobAd" />
+        <mapping class="org.reichhold.robus.jobs.CleanJobAd" />
+        <mapping class="org.reichhold.robus.roles.Role" />
+        <mapping class="org.reichhold.robus.roles.RoleTerm" />
 
     </session-factory>
 

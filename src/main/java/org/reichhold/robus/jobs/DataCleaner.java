@@ -1,9 +1,7 @@
-package org.reichhold.robus.jobAdData;
+package org.reichhold.robus.jobs;
 
 import org.jsoup.Jsoup;
-import org.reichhold.robus.model.CleanJobAd;
 import org.reichhold.robus.model.DataStore;
-import org.reichhold.robus.model.JobAd;
 
 import java.util.List;
 

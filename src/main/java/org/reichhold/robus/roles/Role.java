@@ -1,4 +1,4 @@
-package org.reichhold.robus.model;
+package org.reichhold.robus.roles;
 
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
@@ -26,6 +26,12 @@ public class Role {
 
     @Column
     private String name;
+
+    @Column
+    private String keyword1;
+
+    @Column
+    private String keyword2;
 
     @OneToMany (mappedBy = "role")
     private List<RoleTerm> roleTerms;
@@ -56,6 +62,22 @@ public class Role {
 
     public void setRoleTerms(List<RoleTerm> roleTerms) {
         this.roleTerms = roleTerms;
+    }
+
+    public String getKeyword1() {
+        return keyword1;
+    }
+
+    public void setKeyword1(String keyword1) {
+        this.keyword1 = keyword1;
+    }
+
+    public String getKeyword2() {
+        return keyword2;
+    }
+
+    public void setKeyword2(String keyword2) {
+        this.keyword2 = keyword2;
     }
 
     @Transient
