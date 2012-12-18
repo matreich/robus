@@ -1,0 +1,36 @@
+package org.reichhold.robus.lucene;
+
+import org.apache.lucene.index.AtomicReaderContext;
+import org.apache.lucene.queries.CustomScoreProvider;
+import org.apache.lucene.queries.CustomScoreQuery;
+import org.apache.lucene.queries.function.FunctionQuery;
+import org.apache.lucene.queries.function.valuesource.FloatFieldSource;
+import org.apache.lucene.search.Query;
+
+/**
+ * User: matthias
+ * Date: 18.12.12
+ */
+public class RoleScoreQuery extends CustomScoreQuery {
+
+    public RoleScoreQuery(Query subQuery, String roleName) {
+        super(subQuery, new FunctionQuery( new FloatFieldSource(roleName)));
+
+        //this.setStrict(true); // do not normalize score values from ValueSourceQuery!
+    }
+
+    @Override
+    protected CustomScoreProvider getCustomScoreProvider(AtomicReaderContext reader) {
+        return new CustomScoreProvider(reader) {
+            @Override
+            public float customScore(int doc, float subQueryScore, float valSrcScore){
+                //merge scores; formular = http://research.microsoft.com/pubs/145110/sheldonssc-lambdamerge-wsdm11.pdf
+                float weight = 1.0f;
+                float mergedScore = subQueryScore + weight * valSrcScore;
+
+                System.out.println("Computing score --> defaultScore: " + subQueryScore + " roleScore: " + valSrcScore  + " = mergedScore: " + mergedScore);
+                return mergedScore;
+            }
+        };
+    }
+}
