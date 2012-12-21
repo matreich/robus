@@ -1,6 +1,6 @@
 package org.reichhold.robus.jobs;
 
-import org.reichhold.robus.model.DataStore;
+import org.reichhold.robus.db.DataStore;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.builder.api.LinkedInApi;
 import org.scribe.model.*;

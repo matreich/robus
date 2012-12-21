@@ -1,4 +1,4 @@
-package org.reichhold.robus.model;
+package org.reichhold.robus.db;
 
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -197,4 +197,67 @@ public class DataStore {
         return result;
     }
 
+
+    public List<CleanJobAd> getCleanJobAdsByRole(Role role, int limit) {
+        session = InitSessionFactory.getInstance().openSession();
+        Transaction tx = session.beginTransaction();
+
+        String titleClause = "%" + role.getKeyword1() + " " + role.getKeyword2() + "%";
+
+        //List result = session.createQuery( "from CleanJobAd where title like '" + whereClause + "'").list();
+        List result = session.createQuery( "from CleanJobAd where title like :t")
+                .setParameter("t", titleClause)
+                .list();
+        //todo: if result.size < MINIMUM adapt query
+
+        if(limit == 0)
+        {
+            limit = result.size();
+        }
+
+        if(result.size() > limit)
+        {
+            result = result.subList(0, limit);
+        }
+
+        tx.commit();
+        session.close();
+
+        return result;
+    }
+
+    public void saveOrUpdateRole(Role element) {
+        List<Role> roles = getRoles(element.getOrganisation(), element.getName());
+
+        session = InitSessionFactory.getInstance().openSession();
+        Transaction tx = session.beginTransaction();
+
+        for (Role r : roles) {
+            //role with same name & organisation already exists
+            //delete this role (and its role terms) first
+            session.delete(r);
+            session.flush();
+        }
+
+        session.save(element);
+
+        tx.commit();
+        session.close();
+    }
+
+    public List<Role> getRoles(String organisation, String name)
+    {
+        session = InitSessionFactory.getInstance().openSession();
+        Transaction tx = session.beginTransaction();
+
+        List<Role> results = session.createQuery( " from Role where name = :n and organisation = :o")
+                .setParameter("o", organisation)
+                .setParameter("n", name)
+                .list();
+
+        tx.commit();
+        session.close();
+
+        return results;
+    }
 }

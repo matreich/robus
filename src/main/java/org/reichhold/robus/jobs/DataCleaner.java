@@ -1,7 +1,7 @@
 package org.reichhold.robus.jobs;
 
 import org.jsoup.Jsoup;
-import org.reichhold.robus.model.DataStore;
+import org.reichhold.robus.db.DataStore;
 
 import java.util.List;
 

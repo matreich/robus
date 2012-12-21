@@ -14,6 +14,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 import org.jsoup.Jsoup;
 import org.reichhold.robus.roles.Role;
+import org.reichhold.robus.roles.RoleReader;
 
 import java.io.*;
 import java.util.Date;
@@ -180,7 +181,7 @@ public class LuceneIndex {
             doc.removeField(role.getName());
             doc.add(f);
 
-            writer.updateDocument(new Term("path", doc.get("path")), doc);
+            writer.updateDocument(new JobTerm("path", doc.get("path")), doc);
             writer.commit();   */
         }
     }

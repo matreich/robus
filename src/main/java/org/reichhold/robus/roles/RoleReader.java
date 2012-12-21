@@ -1,7 +1,6 @@
-package org.reichhold.robus.lucene;
+package org.reichhold.robus.roles;
 
-import org.reichhold.robus.model.DataStore;
-import org.reichhold.robus.roles.Role;
+import org.reichhold.robus.db.DataStore;
 
 import java.util.List;
 

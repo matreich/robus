@@ -13,7 +13,8 @@ import java.util.List;
  * Date: 15.12.12
  */
 @Entity
-@Table (name = "role")
+@Table (name = "role", uniqueConstraints=
+    @UniqueConstraint( columnNames = {"organisation", "name"}) )
 public class Role {
 
     @Id
@@ -33,7 +34,7 @@ public class Role {
     @Column
     private String keyword2;
 
-    @OneToMany (mappedBy = "role")
+    @OneToMany (mappedBy = "role", cascade = CascadeType.ALL)
     private List<RoleTerm> roleTerms;
 
     public long getRoleId() {

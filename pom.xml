@@ -73,6 +73,11 @@
             <artifactId>lucene-queryparser</artifactId>
             <version>4.0.0-BETA</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.opennlp</groupId>
+            <artifactId>opennlp-tools</artifactId>
+            <version>1.5.1-incubating</version>
+        </dependency>
 
 
     </dependencies>
