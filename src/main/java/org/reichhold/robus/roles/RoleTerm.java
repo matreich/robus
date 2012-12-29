@@ -8,7 +8,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table (name = "role_term")
-public class RoleTerm {
+public class RoleTerm implements Comparable<RoleTerm> {
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     @Column (name = "term_id")
@@ -54,5 +54,14 @@ public class RoleTerm {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    @Override
+    public int compareTo(RoleTerm roleTerm) {
+        if (this.getWeight() < roleTerm.getWeight()) {
+            return 1;
+        } else {
+            return -1;
+        }
     }
 }

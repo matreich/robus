@@ -1,5 +1,7 @@
 package org.reichhold.robus.roles;
 
+import org.reichhold.robus.roles.disco.DiscoReader;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,10 +17,10 @@ public class Job {
 
     private Map<String, RoleTerm> roleTerms;
 
-    public Job() {
-        titleZone = new JobZone(0.5f);
-        descriptionZone = new JobZone(0.2f);
-        skillsZone = new JobZone(0.3f);
+    public Job(DiscoReader disco) {
+        titleZone = new JobZone(0.5f, disco);
+        descriptionZone = new JobZone(0.2f, disco);
+        skillsZone = new JobZone(0.3f, disco);
 
         roleTerms = new HashMap<String, RoleTerm>();
     }
@@ -66,7 +68,7 @@ public class Job {
                 titleTerm = titleZone.getTerms().get(descriptionTerm.getTerm());
 
                 //remove term from list so that it is not considered once in merging process
-                titleZone.getTerms().remove(titleTerm).getTerm();
+                titleZone.getTerms().remove(titleTerm.getTerm());
             }
 
             if(skillsZone.getTerms().containsKey(descriptionTerm.getTerm())) {

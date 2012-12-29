@@ -1,6 +1,6 @@
 package org.reichhold.robus;
 
-import org.reichhold.robus.roles.Role;
+import org.reichhold.robus.lucene.LuceneIndex;
 import org.reichhold.robus.roles.RoleWriter;
 
 public class Robus {
@@ -41,32 +41,22 @@ public class Robus {
         if(input.equals("y"))
         { */
 
-        /* Create Lucene Index
+        /* Create Lucene Index */
         LuceneIndex indexer = new LuceneIndex();
-        indexer.createIndexes();
-        indexer.computeRoleScores();
-
-        indexer.printAllDocsWithRoleScores();
-        */
+        //indexer.createIndexes();
+        //indexer.computeRoleScores();
+        //indexer.printAllDocsWithRoleScores();
 
         /* create role vectors */
-
         RoleWriter roles = new RoleWriter();
-        //roles.updateRoles("EvalCo");
+        roles.updateRoles("EvalCo");
 
-        Role webDeveloper = new Role();
-        webDeveloper.setName("WebDeveloper");
+        /*Role webDeveloper = new Role();
+        webDeveloper.setName("JavaDeveloper");
         webDeveloper.setOrganisation("EvalCo");
-        webDeveloper.setKeyword1("Web");
+        webDeveloper.setKeyword1("Java");
         webDeveloper.setKeyword2("Developer");
-
-        roles.addOrUpdateRole(webDeveloper);
-
-
-        String test = "Skilled web developer with PHP and JS expertise. " +
-                "Solid understanding of standards compliant HTML and CSS. " +
-                "Must possess a can-do attitude and a passion for technology";
-
+        roles.addOrUpdateRole(webDeveloper);*/
 
         //Split TREC archive files into single HTML files
         //Trec2Html converter = new Trec2Html();

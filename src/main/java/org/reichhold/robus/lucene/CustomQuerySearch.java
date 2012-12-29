@@ -24,8 +24,8 @@ import java.util.Date;
  */
 public class CustomQuerySearch {
 
-    //private static String roleName = "JavaDeveloper";
-    private static String roleName = "AccountManager";
+    private static String roleName = "JavaDeveloper";
+    //private static String roleName = "AccountManager";
 
     public CustomQuerySearch() throws ParseException {}
 
@@ -112,7 +112,7 @@ public class CustomQuerySearch {
 
             Query query = parser.parse(line);
 
-            System.out.println("Searching for: " + query.toString(field));
+            System.out.println("Searching for: " + query.toString(field) + " with role " + roleName);
 
             if (repeat > 0)
             {                           // repeat & time as benchmark

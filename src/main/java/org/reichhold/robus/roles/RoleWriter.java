@@ -2,9 +2,10 @@ package org.reichhold.robus.roles;
 
 import org.reichhold.robus.db.DataStore;
 import org.reichhold.robus.jobs.CleanJobAd;
+import org.reichhold.robus.roles.disco.DiscoReader;
+import org.reichhold.robus.roles.nlp.NlpHelper;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * User: matthias
@@ -46,34 +47,79 @@ public class RoleWriter {
      * @param role the existing role without role terms
      */
     private List<RoleTerm> createRoleTerms(Role role) {
-        int maxRoleTerms = 100;
+
+        System.out.println("Start creating role terms for role " + role.getName());
+
+        int maxRoleTerms = 50;
         int maxJobAds = 100;
 
         List<CleanJobAd> jobAds = getJobAds(role, maxJobAds);
 
         List<Job> jobs = new ArrayList<Job>();
 
+        DiscoReader disco = new DiscoReader();
+        disco.loadDiscoLevels();
+
+        NlpHelper nlp = new NlpHelper();
+
         //for all jobAds:
         for (CleanJobAd jobAd : jobAds) {
-
-            // do tokenizing and POS tagging
-            //todo: gorß-/kleinschreibung --> alle terms klein machen?
+            System.out.println("extracting terms from job " + jobAd.getJobId() + " " + jobAd.getTitle());
 
             //extract job terms for all three zones
-            Job job = new Job();
-            job.getTitleZone().generateJobTerms(jobAd.getTitle());
-            job.getDescriptionZone().generateJobTerms(jobAd.getDescription());
-            job.getSkillsZone().generateJobTerms(jobAd.getSkills());
+            Job job = new Job(disco);
+            job.getTitleZone().generateJobTerms(jobAd.getTitle(), nlp);
+            job.getDescriptionZone().generateJobTerms(jobAd.getDescription(), nlp);
+            job.getSkillsZone().generateJobTerms(jobAd.getSkills(), nlp);
 
             job.mergeAllJobTermsIntoRoleTerms(role);
 
             jobs.add(job);
         }
 
-        //todo: merge the weighted terms of all jobs into one list of role terms
+        List<RoleTerm> terms = mergeAllRoleTerms(jobs);
 
-        //todo: terms.sortByRoleTerm.weight
-        List<RoleTerm> terms = new ArrayList<RoleTerm>();
+        return getTopRoleTerms(terms, maxRoleTerms);
+    }
+
+    private List<RoleTerm> getTopRoleTerms(List<RoleTerm> terms, int maxRoleTerms) {
+        if (terms.size() <= maxRoleTerms) {
+            return terms;
+        }
+
+        //only consider the terms with best weight
+        Collections.sort(terms);
+        return terms.subList(0, maxRoleTerms);
+    }
+
+    private List<RoleTerm> mergeAllRoleTerms(List<Job> jobs) {
+
+        Map<String, RoleTerm> termMap = new HashMap<String, RoleTerm>();
+
+        for (Job job : jobs) {
+
+            for (Map.Entry<String, RoleTerm> entry : job.getRoleTerms().entrySet()) {
+
+                RoleTerm term = entry.getValue();
+
+                if(termMap.containsKey(term.getTerm())) {
+                    //update weight
+                    RoleTerm updateTerm = termMap.get(term.getTerm());
+                    float currentWeight = updateTerm.getWeight();
+                    currentWeight += term.getWeight();
+                    updateTerm.setWeight(currentWeight);
+                }
+                else {
+                    termMap.put(term.getTerm(), term);
+                }
+            }
+        }
+
+        List<RoleTerm> terms = new ArrayList<RoleTerm>(termMap.values());
+
+        for (RoleTerm term : terms) {
+            term.setWeight((float) Math.sqrt(term.getWeight()));
+        }
 
         return terms;
     }
