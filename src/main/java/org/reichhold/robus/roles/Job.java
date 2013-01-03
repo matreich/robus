@@ -80,19 +80,41 @@ public class Job {
 
             Float termWeight = computeTermWeight(descriptionTerm, titleTerm, skillsTerm);
 
-            RoleTerm roleTerm = new RoleTerm();
-            roleTerm.setRole(role);
-            roleTerm.setTerm(descriptionTerm.getTerm());
-            roleTerm.setWeight(termWeight);
-
-            roleTerms.put(descriptionTerm.getTerm(), roleTerm);
+            roleTerms.put(descriptionTerm.getTerm(), new RoleTerm(descriptionTerm.getTerm(), termWeight, role));
         }
 
-        //todo: repeat procedure for terms that occur in title or skills zone but not in description
+        for (Map.Entry<String, JobTerm> entry : titleZone.getTerms().entrySet()){
+
+            JobTerm titleTerm = entry.getValue();
+            JobTerm skillsTerm = null;
+
+            if(skillsZone.getTerms().containsKey(titleTerm.getTerm())) {
+                skillsTerm = skillsZone.getTerms().get(titleTerm.getTerm());
+
+                //remove term from list so that it is not considered once in merging process
+                skillsZone.getTerms().remove(skillsTerm.getTerm());
+            }
+
+            Float termWeight = computeTermWeight(null, titleTerm, skillsTerm);
+
+            roleTerms.put(titleTerm.getTerm(), new RoleTerm(titleTerm.getTerm(), termWeight, role));
+        }
+
+        for (Map.Entry<String, JobTerm> entry : skillsZone.getTerms().entrySet()){
+
+            JobTerm skillsTerm = entry.getValue();
+
+            Float termWeight = computeTermWeight(null, null, skillsTerm);
+
+            roleTerms.put(skillsTerm.getTerm(), new RoleTerm(skillsTerm.getTerm(), termWeight, role));
+        }
     }
 
     private Float computeTermWeight(JobTerm descriptionTerm, JobTerm titleTerm, JobTerm skillsTerm) {
-        Float descriptionWeight = 0.2f * descriptionTerm.getWeight();
+        Float descriptionWeight = 0.0f;
+        if (descriptionTerm != null) {
+            descriptionWeight = 0.2f * descriptionTerm.getWeight();
+        }
 
         Float titleWeight = 0.0f;
         if(titleTerm != null) {

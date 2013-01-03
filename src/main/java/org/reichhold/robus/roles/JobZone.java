@@ -122,15 +122,11 @@ public class JobZone {
     private int checkRelevance(String token, String tag) {
         int discoLevel = 0;
 
-        if (token.length() > 1 && (tag.equals("NN") || tag.equals("NP"))) {
-            discoLevel = computeDiscoLevel(token);
+        if (token.length() > 1 && (tag.equals("NN") || tag.equals("NP") || tag.equals("NNS") || tag.equals("NPS"))) {
+            discoLevel = discoReader.getDiscoLevel(token.toLowerCase());
         }
 
         return discoLevel;
-    }
-
-    private int computeDiscoLevel(String token) {
-        return discoReader.getDiscoLevel(token);
     }
 
     private void computeTermWeights() {

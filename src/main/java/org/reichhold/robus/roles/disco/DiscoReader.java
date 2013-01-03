@@ -57,7 +57,10 @@ public class DiscoReader {
             for (int i = 0; i < nodes.getLength(); i++) {
                 Node node = nodes.item(i);
 
-                String term = node.getChildNodes().item(0).getNodeValue().trim();
+                String term = node.getChildNodes().item(0).getNodeValue()
+                        .trim()
+                        .toLowerCase();
+
                 Integer level = Integer.parseInt(node.getAttributes().item(0).getNodeValue());
 
                 terms.put(term, level);
@@ -70,26 +73,43 @@ public class DiscoReader {
     public Integer getDiscoLevel(String term) {
         int level = 0;
 
+        boolean similarSearch = true;
+
         if (terms.containsKey(term)) {
             //found exact matching
             level = terms.get(term).intValue();
+            similarSearch = false;
         }
-        else {
+        if (similarSearch) {
             //try to find similar match...
             Set<String> allKeys = terms.keySet();
 
             for (String key : allKeys) {
-                if (! key.contains(term)) {
+                if (!key.contains(term)) {
                     continue;
                 }
 
-                int newLevel = terms.get(key).intValue();
-                if (newLevel > level) {
-                    level = newLevel;
+                //split key into tokens --> check if term equals one of the key tokens...
+                String[] keysTokens = key.split(" ");
+
+                for (String keyToken : keysTokens) {
+                    if(!keyToken.equals(term)) {
+                        continue;
+                    }
+
+                    int newLevel = terms.get(key).intValue();
+                    if (newLevel > level) {
+                        level = newLevel;
+                    }
                 }
             }
-        }
 
+            //a similar match is not as good as a exact match
+            if (level > 1) {
+                level /= 2;
+            }
+        }
+//System.out.println(level + ": " + term);
         return level;
     }
 }

@@ -30,6 +30,8 @@ public class RoleWriter {
         for (Role r : reader.getRoles()) {
             addOrUpdateRole(r);
         }
+
+        store.deleteTermsByFrequency();
     }
 
     /***
@@ -48,12 +50,12 @@ public class RoleWriter {
      */
     private List<RoleTerm> createRoleTerms(Role role) {
 
-        System.out.println("Start creating role terms for role " + role.getName());
 
-        int maxRoleTerms = 50;
-        int maxJobAds = 100;
+        int maxRoleTerms = 25;
+        int maxJobAds = 10;
 
         List<CleanJobAd> jobAds = getJobAds(role, maxJobAds);
+        System.out.println("\nStart creating role terms for role " + role.getName() + " out of " + jobAds.size() + " jobAds");
 
         List<Job> jobs = new ArrayList<Job>();
 
@@ -62,7 +64,6 @@ public class RoleWriter {
 
         NlpHelper nlp = new NlpHelper();
 
-        //for all jobAds:
         for (CleanJobAd jobAd : jobAds) {
             System.out.println("extracting terms from job " + jobAd.getJobId() + " " + jobAd.getTitle());
 

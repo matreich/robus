@@ -3,6 +3,7 @@ package org.reichhold.robus.db;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.reichhold.robus.citeUlike.CulAssignment;
 import org.reichhold.robus.jobs.CleanJobAd;
 import org.reichhold.robus.jobs.JobAd;
 import org.reichhold.robus.jobs.Token;
@@ -260,4 +261,46 @@ public class DataStore {
 
         return results;
     }
+
+    /***
+     * terms that occur in many roles are not significant and can therfor be deleted
+     * this methods delets all terms that occur in more then X roles
+     * where X = (numberRoles - 1) / 2
+     * @return number of deleted entries (role_terms)
+     */
+    public Integer deleteTermsByFrequency()
+    {
+        session = InitSessionFactory.getInstance().openSession();
+        Transaction tx = session.beginTransaction();
+
+        Integer numberRoles = ((Long)session.createQuery("select count(*) from Role").uniqueResult()).intValue();
+
+        int minFreq;
+        minFreq = numberRoles > 1 ? (numberRoles - 1) / 2 : 1;
+
+        String query = "delete from role_term where term in (" +
+                "select term from (" +
+                "select term, count(term) c from role_term group by term order by c desc) t where c > :treshold)";
+
+        int rows = session.createSQLQuery(query)
+                .setParameter("treshold", minFreq)
+                .executeUpdate();
+
+        tx.commit();
+        session.close();
+
+        System.out.println("Deleted " + rows + " RoleTerms due to too high document frequency (IDF)");
+
+        return rows;
+    }
+
+    public void saveOrUpdateCulAssignment(CulAssignment entity)
+    {
+        Transaction tx = session.beginTransaction();
+
+        session.saveOrUpdate(entity);
+
+        tx.commit();
+    }
+
 }

@@ -24,6 +24,15 @@ public class RoleTerm implements Comparable<RoleTerm> {
     @JoinColumn (name = "role")
     private Role role;
 
+    public RoleTerm() {
+    }
+
+    public RoleTerm(String term, Float weight, Role role) {
+        this.term = term;
+        this.weight = weight;
+        this.role = role;
+    }
+
     public long getTermId() {
         return termId;
     }

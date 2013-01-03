@@ -20,6 +20,8 @@ public class RobusTagger {
 
         try {
             modelIn = new FileInputStream("/Users/matthias/Documents/workspace/robus/src/main/resources/openNlp/en-pos-brown.bin");
+            //standard models uses different tag set --> NNP instead of NP....
+            //modelIn = new FileInputStream("/Users/matthias/Documents/workspace/robus/src/main/resources/openNlp/en-pos-maxent.bin");
 
             model  = new POSModel(modelIn);
 
