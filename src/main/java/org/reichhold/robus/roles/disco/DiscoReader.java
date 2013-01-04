@@ -37,7 +37,7 @@ public class DiscoReader {
     }
 
     //disco LEVEL calculation
-    public void loadDiscoLevels() {
+        public void loadDiscoLevels() {
 
         try {
             File discoFile = new File("/Users/matthias/Documents/workspace/robus/src/main/resources/DISCO_EN_hierarchy_only.xml");

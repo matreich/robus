@@ -11,22 +11,22 @@ import javax.persistence.*;
 public class CulAssignment {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue( strategy = GenerationType.AUTO)
     @Column (name = "id")
     private long id;
 
     @Column(name = "timestamp")
     private String timestamp;
 
-    @ManyToOne ( cascade = CascadeType.ALL )
+    @ManyToOne
     @JoinColumn (name = "user")
     private CulUser user;
 
-    @ManyToOne ( cascade = CascadeType.ALL )
+    @ManyToOne
     @JoinColumn (name = "document")
     private CulDocument document;
 
-    @ManyToOne ( cascade = CascadeType.ALL )
+    @ManyToOne
     @JoinColumn (name = "tag")
     private CulTag tag;
 

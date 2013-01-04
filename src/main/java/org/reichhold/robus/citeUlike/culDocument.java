@@ -21,6 +21,9 @@ public class CulDocument {
     @Column (name = "content_abstract")
     private String contentAbstract;
 
+    @Column (name = "title")
+    private String title;
+
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL)
     private List<CulAssignment> assignments;
 

@@ -4,6 +4,9 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.reichhold.robus.citeUlike.CulAssignment;
+import org.reichhold.robus.citeUlike.CulDocument;
+import org.reichhold.robus.citeUlike.CulTag;
+import org.reichhold.robus.citeUlike.CulUser;
 import org.reichhold.robus.jobs.CleanJobAd;
 import org.reichhold.robus.jobs.JobAd;
 import org.reichhold.robus.jobs.Token;
@@ -294,13 +297,104 @@ public class DataStore {
         return rows;
     }
 
-    public void saveOrUpdateCulAssignment(CulAssignment entity)
+    public void saveOrUpdateObject(Object entity)
     {
-        Transaction tx = session.beginTransaction();
+        try {
+            Transaction tx = session.beginTransaction();
+            session.saveOrUpdate(entity);
+            tx.commit();
+        } catch (Exception e) {
 
-        session.saveOrUpdate(entity);
-
-        tx.commit();
+        }
     }
 
+    public long saveCulDocuments(List<CulDocument> entities) {
+        long counter = 0;
+
+        Session mySession = InitSessionFactory.getInstance().openSession();
+        Transaction tx = mySession.beginTransaction();
+
+        for (CulDocument e:entities)
+        {
+            try {
+                mySession.save(e);
+                counter = counter + 1;
+
+            } catch (Exception ex) {
+                //ex.printStackTrace();
+            }
+        }
+        mySession.flush();
+        mySession.clear();
+        tx.commit();
+        return counter;
+    }
+
+    public long saveCulTags(List<CulTag> entities) {
+        long counter = 0;
+
+        Session mySession = InitSessionFactory.getInstance().openSession();
+        Transaction tx = mySession.beginTransaction();
+
+        for (CulTag e:entities)
+        {
+            try {
+                mySession.save(e);
+                counter = counter + 1;
+
+            } catch (Exception ex) {
+                //ex.printStackTrace();
+            }
+        }
+        mySession.flush();
+        mySession.clear();
+        tx.commit();
+        return counter;
+    }
+
+    public long saveCulAssignments(List<CulAssignment> entities) {
+        long counter = 0;
+
+        Session mySession = InitSessionFactory.getInstance().openSession();
+        Transaction tx = mySession.beginTransaction();
+
+        for (CulAssignment e:entities)
+        {
+            try {
+                mySession.save(e);
+                counter = counter + 1;
+
+            } catch (Exception ex) {
+                //ex.printStackTrace();
+            }
+        }
+        mySession.flush();
+        mySession.clear();
+        tx.commit();
+        return counter;
+    }
+
+    public long saveCulUsers(List<CulUser> entities) {
+
+        long counter = 0;
+
+        Session mySession = InitSessionFactory.getInstance().openSession();
+        Transaction tx = mySession.beginTransaction();
+
+        for (CulUser e:entities)
+        {
+            try {
+                //System.out.println(counter + ": " + e.getId());
+                mySession.save(e);
+                counter = counter + 1;
+
+            } catch (Exception ex) {
+                //ex.printStackTrace();
+            }
+        }
+        mySession.flush();
+        mySession.clear(); // not needed ? (see below)
+        tx.commit();
+        return counter;
+    }
 }

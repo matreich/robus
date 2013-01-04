@@ -1,12 +1,15 @@
 package org.reichhold.robus;
 
-import org.reichhold.robus.citeUlike.CulAssignment;
-import org.reichhold.robus.citeUlike.CulDocument;
-import org.reichhold.robus.citeUlike.CulTag;
-import org.reichhold.robus.citeUlike.CulUser;
-import org.reichhold.robus.db.DataStore;
+import com.google.gson.Gson;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.reichhold.robus.citeUlike.CulFileReader;
 import org.reichhold.robus.lucene.LuceneIndex;
 import org.reichhold.robus.roles.RoleWriter;
+
+import java.io.*;
+import java.net.URL;
+import java.nio.charset.Charset;
 
 public class Robus {
     public static void main(String[] args)
@@ -64,29 +67,74 @@ public class Robus {
         //NlpHelper nlp = new NlpHelper();
         //nlp.textToChunks(text);
 
-        CulUser user = new CulUser();
-        user.setId("userTest");
-        user.setName("test user");
+        CulFileReader cul = new CulFileReader();
+        //cul.fileToDb();
 
-        CulDocument doc = new CulDocument();
-        doc.setId("docID");
-        doc.setPath("www.test.com/path/to/document.pdf");
-        doc.setContentAbstract("this is the abstract of the test document");
-
-        CulTag tag = new CulTag();
-        tag.setTerm("tag1");
-
-        CulAssignment ass1 = new CulAssignment();
-        ass1.setUser(user);
-        ass1.setDocument(doc);
-        ass1.setTag(tag);
-        ass1.setTimestamp("2013-01-03");
-
-        DataStore store = new DataStore();
-        store.saveOrUpdateCulAssignment(ass1);
+        testJson();
 
         //Split TREC archive files into single HTML files
         //Trec2Html converter = new Trec2Html();
         //converter.createHtmlFiles();
+    }
+
+    private static void testJson() {
+        //String url = "http://www.citeulike.org/json/user/matreich";
+        String url = "http://www.citeulike.org/json/article/11862427";
+        InputStream is = null;
+        try {
+            is = new URL(url).openStream();
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        try {
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            String jsonText = readAll(rd);
+
+            JSONObject json = new JSONObject(jsonText);
+            String text = json.toString();
+            String path = json.get("href").toString();
+            String title = json.get("title").toString();
+            json.get("abstract");
+
+
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (JSONException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
+            }
+        }
+    }
+    private static String readAll(Reader rd) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        int cp;
+        while ((cp = rd.read()) != -1) {
+            sb.append((char) cp);
+        }
+        return sb.toString();
+    }
+
+    private static void testGson() {
+        //String url = "http://www.citeulike.org/json/user/matreich";
+        String url = "http://www.citeulike.org/json/article/11862427";
+
+        //http://www.citeulike.org/user/matreich/article/11862427
+        InputStream is = null;
+        try {
+            is = new URL(url).openStream();
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        Reader reader = new BufferedReader((new InputStreamReader(is, Charset.forName("UTF-8"))));
+
+        Gson gson = new Gson();
+        gson.fromJson(reader, Object.class);
+        String text = gson.toString();
     }
 }
