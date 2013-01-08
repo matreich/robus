@@ -1,5 +1,7 @@
 package org.reichhold.robus.citeUlike;
 
+import org.hibernate.annotations.Index;
+
 import javax.persistence.*;
 
 /**
@@ -8,7 +10,8 @@ import javax.persistence.*;
  */
 @Entity
 @Table (name = "cul_assignment")
-public class CulAssignment {
+@org.hibernate.annotations.Table(appliesTo = "cul_assignment", indexes = { @Index(name = "assignment_user", columnNames = { "user" })})
+    public class CulAssignment {
 
     @Id
     @GeneratedValue( strategy = GenerationType.AUTO)

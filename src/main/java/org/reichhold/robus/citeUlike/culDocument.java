@@ -46,6 +46,14 @@ public class CulDocument {
         this.path = path;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public String getContentAbstract() {
         return contentAbstract;
     }

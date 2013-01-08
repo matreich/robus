@@ -18,6 +18,9 @@ public class CulUser {
     @Column (name = "name")
     private String name;
 
+    @Column (name = "robus_role")
+    private String robusRole;
+
     @OneToMany (mappedBy = "user", cascade = CascadeType.ALL)
     private List<CulAssignment> assignments;
 
@@ -30,6 +33,14 @@ public class CulUser {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getRobusRole() {
+        return robusRole;
+    }
+
+    public void setRobusRole(String robusRole) {
+        this.robusRole = robusRole;
     }
 
     public String getName() {

@@ -206,15 +206,30 @@ public class DataStore {
         session = InitSessionFactory.getInstance().openSession();
         Transaction tx = session.beginTransaction();
 
-        String titleClause = "%" + role.getKeyword1() + " " + role.getKeyword2() + "%";
-
-        //List result = session.createQuery( "from CleanJobAd where title like '" + whereClause + "'").list();
-        List result = session.createQuery( "from CleanJobAd where title like :t")
-                .setParameter("t", titleClause)
+        //get all entries whose title contains kw1 and kw2
+        List result = session.createQuery( "from CleanJobAd WHERE INSTR(title, :kw1) > 0 and INSTR(title, :kw2) > 0")
+                .setParameter("kw1", role.getKeyword1())
+                .setParameter("kw2", role.getKeyword2())
+                .setMaxResults(limit)
                 .list();
-        //todo: if result.size < MINIMUM adapt query
 
-        if(limit == 0)
+        //if result.size < MINIMUM adapt query?
+        List result2 = null;
+        if (result.size() < 5) {
+            result2 = session.createQuery( "from CleanJobAd WHERE INSTR(title, :kw1) > 0 OR INSTR(title, :kw2) > 0")
+                    .setParameter("kw1", role.getKeyword1())
+                    .setParameter("kw2", role.getKeyword2())
+                    .setMaxResults(limit)
+                    .list();
+        }
+
+        if (result2 != null) {
+            result.addAll(result2);
+        }
+
+        //todo: use lucene search and get top k job ads....
+
+        /*if(limit == 0)
         {
             limit = result.size();
         }
@@ -222,7 +237,7 @@ public class DataStore {
         if(result.size() > limit)
         {
             result = result.subList(0, limit);
-        }
+        }*/
 
         tx.commit();
         session.close();
@@ -304,7 +319,8 @@ public class DataStore {
             session.saveOrUpdate(entity);
             tx.commit();
         } catch (Exception e) {
-
+          System.out.println("Error saving/updating entity!");
+          e.printStackTrace();
         }
     }
 
@@ -396,5 +412,76 @@ public class DataStore {
         mySession.clear(); // not needed ? (see below)
         tx.commit();
         return counter;
+    }
+
+    public List<CulDocument> getEmptyCulDocuments(int number) {
+        Transaction tx = session.beginTransaction();
+
+        Query q = session.createQuery( "from CulDocument where path is null" );
+        q.setMaxResults(number);
+        List<CulDocument> result = q.list();
+
+        tx.commit();
+
+        return result;
+    }
+
+    public void saveOrUpdateObjects(List entities, String entityName) {
+        long counter = 0;
+
+        //Session mySession = InitSessionFactory.getInstance().openSession();
+        Transaction tx = session.beginTransaction();
+
+
+        for (Object e:entities)
+        {
+            try {
+                //mySession.persist(entityName, e);
+                session.saveOrUpdate(entityName, e);
+                counter = counter + 1;
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        session.flush();
+        //mySession.clear(); // not needed ? (see below)
+        tx.commit();
+    }
+
+    public void closeSession() {
+        session.close();
+    }
+
+    public List<CulAssignment> getAssignmentsForUser(String userId) {
+        Transaction tx = session.beginTransaction();
+
+        CulUser user = new CulUser();
+        user.setId(userId);
+        Query q = session.createQuery( "from CulAssignment where user = :u" );
+        q.setParameter("u", user);
+        q.setMaxResults(1000);
+        List<CulAssignment> result = q.list();
+
+        tx.commit();
+
+        return result;
+    }
+
+    public List<CulUser> getCulUsersByTag(String term, int maxResults) {
+        //select a.user, count(a.user) number from cul_assignment a where a.tag = 'java' group by a.user order by number desc;
+        CulTag tag = new CulTag();
+        tag.setTerm(term);
+
+        Transaction tx = session.beginTransaction();
+
+        Query q = session.createQuery( "select user from CulAssignment where tag = :tag group by user order by count(user) desc" );
+        q.setParameter("tag", tag);
+        q.setMaxResults(maxResults);
+        List<CulUser> result = q.list();
+
+        tx.commit();
+
+        return result;
     }
 }
