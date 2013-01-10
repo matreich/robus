@@ -1,12 +1,14 @@
 package org.reichhold.robus.db;
 
+import com.mysql.jdbc.StringUtils;
 import org.hibernate.Query;
+import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.reichhold.robus.citeUlike.CulAssignment;
-import org.reichhold.robus.citeUlike.CulDocument;
-import org.reichhold.robus.citeUlike.CulTag;
-import org.reichhold.robus.citeUlike.CulUser;
+import org.reichhold.robus.citeulike.CulAssignment;
+import org.reichhold.robus.citeulike.CulDocument;
+import org.reichhold.robus.citeulike.CulTag;
+import org.reichhold.robus.citeulike.CulUser;
 import org.reichhold.robus.jobs.CleanJobAd;
 import org.reichhold.robus.jobs.JobAd;
 import org.reichhold.robus.jobs.Token;
@@ -29,6 +31,15 @@ public class DataStore {
     {
         session = InitSessionFactory.getInstance().openSession();
     }
+
+    public Session getSession() {
+        return session;
+    }
+
+    public void closeSession() {
+        session.close();
+    }
+
 
     public List<Role> getRolesByOrganisation (String organisation) {
 
@@ -294,7 +305,7 @@ public class DataStore {
         Integer numberRoles = ((Long)session.createQuery("select count(*) from Role").uniqueResult()).intValue();
 
         int minFreq;
-        minFreq = numberRoles > 1 ? (numberRoles - 1) / 2 : 1;
+        minFreq = numberRoles > 2 ? (numberRoles - 1) / 2 : 1;
 
         String query = "delete from role_term where term in (" +
                 "select term from (" +
@@ -449,21 +460,22 @@ public class DataStore {
         tx.commit();
     }
 
-    public void closeSession() {
-        session.close();
-    }
-
     public List<CulAssignment> getAssignmentsForUser(String userId) {
-        Transaction tx = session.beginTransaction();
+        Session mySession = InitSessionFactory.getInstance().openSession();
+        Transaction tx = mySession.beginTransaction();
 
         CulUser user = new CulUser();
         user.setId(userId);
-        Query q = session.createQuery( "from CulAssignment where user = :u" );
+
+        //CulUser user = (CulUser) mySession.get(CulUser.class, userId);
+
+        Query q = mySession.createQuery( "from CulAssignment where user = :u" );
         q.setParameter("u", user);
         q.setMaxResults(1000);
         List<CulAssignment> result = q.list();
 
         tx.commit();
+        mySession.close();
 
         return result;
     }
@@ -479,6 +491,45 @@ public class DataStore {
         q.setParameter("tag", tag);
         q.setMaxResults(maxResults);
         List<CulUser> result = q.list();
+
+        tx.commit();
+
+        return result;
+    }
+
+    public CulUser getCulUserByRoleName(String role) {
+        Transaction tx = session.beginTransaction();
+
+        Query q = session.createQuery( "from CulUser where robusRole = :role" );
+        q.setParameter("role", role);
+        CulUser user = (CulUser) q.uniqueResult();
+        tx.commit();
+
+        return user;
+    }
+
+    public List<CulDocument> getDocumentsByTag(String query) {
+        Transaction tx = session.beginTransaction();
+
+        Query q = session.createSQLQuery("select distinct(document) from cul_assignment where tag = 'internet'");
+        //and (user = 'fd72178f9f812a46ba4f7c599858cd7a' or user = '617e233adc60a7573c5e5025358250fd')
+
+        List<CulDocument> result = new ArrayList<CulDocument>();
+        ScrollableResults results = q.scroll();
+
+        while (results.next()) {
+
+            CulDocument doc = (CulDocument) session.get(CulDocument.class, (String)results.get(0));
+
+            if(!StringUtils.isNullOrEmpty(doc.getPath())) {
+                continue;
+            }
+
+            result.add(doc);
+            if (result.size() == 100) {
+                break;
+            }
+        }
 
         tx.commit();
 

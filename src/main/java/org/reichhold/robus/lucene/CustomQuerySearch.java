@@ -33,7 +33,7 @@ public class CustomQuerySearch {
     public static void main(String[] args) throws Exception
     {
         String usage =
-                "Usage:\tLuceneSearch [-index dir] [-field f] [-repeat n] [-queries file] [-query string] [-raw] [-paging hitsPerPage]\n\n"
+                "Usage:\tLuceneSearchTest [-index dir] [-field f] [-repeat n] [-queries file] [-query string] [-raw] [-paging hitsPerPage]\n\n"
                         + "See http://lucene.apache.org/java/4_0/demo.html for details.";
         if (args.length > 0 && ("-h".equals(args[0]) || "-help".equals(args[0])))
         {
@@ -78,9 +78,7 @@ public class CustomQuerySearch {
 
         IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(index)));
         IndexSearcher searcher = new IndexSearcher(reader);
-
         Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
-
         BufferedReader in = null;
 
         if (queries != null)

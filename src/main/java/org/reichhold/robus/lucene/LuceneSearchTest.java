@@ -20,17 +20,17 @@ import java.util.HashMap;
 import java.util.TreeMap;
 
 /** Simple command-line based search demo. */
-public class LuceneSearch {
+public class LuceneSearchTest {
 
     private static String roleName = "JavaDeveloper";
 
-    public LuceneSearch() throws ParseException {}
+    public LuceneSearchTest() throws ParseException {}
 
     /** Simple command-line based search demo. */
     public static void main(String[] args) throws Exception
     {
         String usage =
-                "Usage:\tLuceneSearch [-index dir] [-field f] [-repeat n] [-queries file] [-query string] [-raw] [-paging hitsPerPage]\n\n"
+                "Usage:\tLuceneSearchTest [-index dir] [-field f] [-repeat n] [-queries file] [-query string] [-raw] [-paging hitsPerPage]\n\n"
                 + "See http://lucene.apache.org/java/4_0/demo.html for details.";
         if (args.length > 0 && ("-h".equals(args[0]) || "-help".equals(args[0])))
         {

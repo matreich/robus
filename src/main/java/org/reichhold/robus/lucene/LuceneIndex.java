@@ -1,5 +1,6 @@
 package org.reichhold.robus.lucene;
 
+import com.mysql.jdbc.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
@@ -12,7 +13,12 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
+import org.hibernate.Query;
+import org.hibernate.ScrollableResults;
+import org.hibernate.Session;
 import org.jsoup.Jsoup;
+import org.reichhold.robus.citeulike.CulDocument;
+import org.reichhold.robus.db.DataStore;
 import org.reichhold.robus.roles.Role;
 import org.reichhold.robus.roles.RoleReader;
 
@@ -31,38 +37,16 @@ public class LuceneIndex {
     private String roleIndexPath;
     private String docsPath;
     private RoleReader roleReader;
+    private final String culIndexPath;
 
     public LuceneIndex() {
         defaultIndexPath = "/Users/matthias/Documents/workspace/robus/src/main/resources/defaultIndex";
         roleIndexPath = "/Users/matthias/Documents/workspace/robus/src/main/resources/roleIndex";
         docsPath = "/Volumes/Daten/Robus/Resources/TrecHtmlDemo/";
+        culIndexPath = "/Users/matthias/Documents/workspace/robus/src/main/resources/culIndex";
 
         roleReader = new RoleReader();
-        roleReader.loadRoles("EvalCo");
-    }
-
-    public String getDefaultIndexPath() {
-        return defaultIndexPath;
-    }
-
-    public void setDefaultIndexPath(String defaultIndexPath) {
-        this.defaultIndexPath = defaultIndexPath;
-    }
-
-    public String getRoleIndexPath() {
-        return roleIndexPath;
-    }
-
-    public void setRoleIndexPath(String roleIndexPath) {
-        this.roleIndexPath = roleIndexPath;
-    }
-
-    public String getDocsPath() {
-        return docsPath;
-    }
-
-    public void setDocsPath(String docsPath) {
-        this.docsPath = docsPath;
+        roleReader.loadRoles("CiteULike");
     }
 
     public void createIndexes() {
@@ -70,119 +54,112 @@ public class LuceneIndex {
         createIndex(roleIndexPath, docsPath, true, true);
     }
 
-    public void computeRoleScores() {
+    /***
+     * creates an index for all documents stored in cul_document
+     * @param create if true: Creates a new index in the directory, removing any previously indexed documents;
+     *                  else: Adds new documents to an existing index
+     */
+    public void createCulIndex(boolean create) {
         try {
-            Directory roleIndexDir = FSDirectory.open(new File(roleIndexPath));
-
-
+            Directory dir = FSDirectory.open(new File(culIndexPath));
             Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
-            String field = "contents";
-
             IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
-            iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 
-            int maxResults = 1000;
-            List<Role> roles = roleReader.getRoles();
-
-            for (Role role : roles) {
-                IndexReader roleIndexReader = DirectoryReader.open(roleIndexDir);
-                IndexSearcher roleIndexSearcher = new IndexSearcher(roleIndexReader);
-                IndexWriter writer = new IndexWriter(roleIndexDir, iwc);
-
-                computeRoleScore(roleIndexReader, roleIndexSearcher, field, writer, maxResults, role);
-
-                writer.close();
-                roleIndexReader.close();
+            if (create) {
+                iwc.setOpenMode(OpenMode.CREATE);
+            } else {
+                iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-    }
+            IndexWriter writer = new IndexWriter(dir, iwc);
+            System.out.println("Indexing cul_documents to directory '" + culIndexPath + "'...");
 
-    public void computeRoleScore(String roleName) {
-        try {
-            Directory roleIndexDir = FSDirectory.open(new File(roleIndexPath));
+            //get cul_documents
 
-            IndexReader roleIndexReader = DirectoryReader.open(roleIndexDir);
-            IndexSearcher roleIndexSearcher = new IndexSearcher(roleIndexReader);
+            DataStore store = new DataStore();
+            String queryyString = "from CulDocument where contentAbstract != 'n/a'";
+            Session session = store.getSession();
+            Query q = session.createQuery(queryyString);
+            ScrollableResults results = q.scroll();
 
-            Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
-            String field = "contents";
+            int counter = 0;
 
-            IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
-            iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
-            IndexWriter writer = new IndexWriter(roleIndexDir, iwc);
+            while (results.next() )
+            {
+                CulDocument cul = (CulDocument) results.get(0);
+                indexCulDocument(cul, writer);
+                counter += 1;
+                clearSessionCache(counter, session);
 
-            int maxResults = 10;
-            List<Role> roles = roleReader.getRoles();
-
-            for (Role role : roles) {
-                if (role.getName().equals(roleName)) {
-                    computeRoleScore(roleIndexReader, roleIndexSearcher, field, writer, maxResults, role);
-                }
+                //todo: just for testing
+                /*if (counter == 10)
+                    break;*/
             }
+
+            results.close();
+            session.close();
             writer.close();
 
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-
     }
 
-    private void computeRoleScore(IndexReader roleIndexReader, IndexSearcher roleIndexSearcher, String field, IndexWriter writer, int maxResults, Role role) throws IOException {
-        System.out.println("Computing scores for role " + role.getName());
-        BooleanQuery query = role.getBooleanQuery(field);
+    private void indexCulDocument(CulDocument cul, IndexWriter writer) {
+        Document doc = new Document();
 
-        TopDocs results = roleIndexSearcher.search(query, maxResults);
+        // Add the path of the file as a field named "path".  Use a
+        // field that is indexed (i.e. searchable), but don't tokenize
+        // the field into separate words and don't index term frequency
+        // or positional information:
+        Field idField = new StringField("id", cul.getId(), Field.Store.YES);
+        doc.add(idField);
 
-        if (results.totalHits < 1) {
-            System.out.println("Did not find any relevant docs for role " + role.getName());
-            return;
+        Field pathField = new StringField("path", cul.getPath(), Field.Store.YES);
+        doc.add(pathField);
+
+        String title = cul.getTitle() + ". ";
+        String content = cul.getContentAbstract();
+
+        //store both texts into one field
+        TextField field = new TextField("contents", title + content, Field.Store.YES);
+        doc.add(field);
+
+        //create role score fields for each defined role
+        float roleRelevance = 0.0f;
+
+        List<Role> roles = roleReader.getRoles();
+        for (Role role : roles) {
+            Field roleScoreField = new FloatField(role.getName(), roleRelevance, Field.Store.YES);
+
+            doc.add(roleScoreField);
         }
 
-        ScoreDoc[] hits = results.scoreDocs;
-        //update role scores for all documents relevant for this role vector
-        for(ScoreDoc hit : hits) {
-            Document oldDoc = roleIndexReader.document(hit.doc);
-
-            Document newDoc = new Document();
-
-            Field pathField = new StringField("path", oldDoc.getField("path").stringValue(), Field.Store.YES);
-            newDoc.add(pathField);
-
-            newDoc.add(new LongField("modified", (Long) oldDoc.getField("modified").numericValue(), Field.Store.YES));
-
-            TextField contentsField = new TextField("contents", oldDoc.getField("contents").stringValue(), Field.Store.YES);
-            newDoc.add(contentsField);
-
-            List<Role> roles = roleReader.getRoles();
-            for (Role r : roles) {
-                Float roleScore = (Float) oldDoc.getField(r.getName()).numericValue();
-                if(r.getName().equals(role.getName())) {
-                    //set new role score value
-                    roleScore = hit.score;
-                }
-
-                Field roleScoreField = new FloatField(r.getName(), roleScore, Field.Store.YES);
-                newDoc.add(roleScoreField);
+        if (writer.getConfig().getOpenMode() == OpenMode.CREATE) {
+            try {
+                writer.addDocument(doc);
+                System.out.println("adding cul_document " + doc.get("path"));
+            } catch (IOException e) {
+                System.out.println("Error adding cul_document" + doc.get("path"));
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
+        }
+        else
+        {
+            try {
+                writer.updateDocument(new Term("id", doc.get("id")), doc);
+                System.out.println("updating cul_document " + doc.get("path"));
+            } catch (IOException e) {
+                System.out.println("Error updating cul_document" + doc.get("path"));
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+        }
+    }
 
-            writer.deleteDocuments(new Term("path", oldDoc.get("path")));
-            writer.commit();
-
-            writer.addDocument(newDoc);
-
-            /*Document doc = roleIndexReader.document(hit.doc);
-
-            Field f = (Field) doc.getField(role.getName());
-            f.setFloatValue(hit.score);
-
-            doc.removeField(role.getName());
-            doc.add(f);
-
-            writer.updateDocument(new JobTerm("path", doc.get("path")), doc);
-            writer.commit();   */
+    private void clearSessionCache(int counter, Session session) {
+        if ( counter % 100 == 0) {
+            session.flush();
+            session.clear();
         }
     }
 
@@ -384,25 +361,162 @@ public class LuceneIndex {
         }
     }
 
+    public void computeRoleScores() {
+        try {
+            Directory roleIndexDir = FSDirectory.open(new File(culIndexPath));
+
+
+            Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
+            String field = "contents";
+
+            IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
+            iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
+
+            int maxResults = 10000;
+            List<Role> roles = roleReader.getRoles();
+
+            for (Role role : roles) {
+                IndexReader roleIndexReader = DirectoryReader.open(roleIndexDir);
+                IndexSearcher roleIndexSearcher = new IndexSearcher(roleIndexReader);
+                IndexWriter writer = new IndexWriter(roleIndexDir, iwc);
+
+                computeRoleScore(roleIndexReader, roleIndexSearcher, field, writer, maxResults, role);
+
+                writer.close();
+                roleIndexReader.close();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+    }
+
+    public void computeRoleScore(String roleName) {
+        try {
+            Directory roleIndexDir = FSDirectory.open(new File(roleIndexPath));
+
+            IndexReader roleIndexReader = DirectoryReader.open(roleIndexDir);
+            IndexSearcher roleIndexSearcher = new IndexSearcher(roleIndexReader);
+
+            Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
+            String field = "contents";
+
+            IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
+            iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
+            IndexWriter writer = new IndexWriter(roleIndexDir, iwc);
+
+            int maxResults = 10;
+            List<Role> roles = roleReader.getRoles();
+
+            for (Role role : roles) {
+                if (role.getName().equals(roleName)) {
+                    computeRoleScore(roleIndexReader, roleIndexSearcher, field, writer, maxResults, role);
+                }
+            }
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+    }
+
+    private void computeRoleScore(IndexReader roleIndexReader, IndexSearcher roleIndexSearcher, String field, IndexWriter writer, int maxResults, Role role) throws IOException {
+        System.out.println("Computing scores for role " + role.getName());
+        BooleanQuery query = role.getBooleanQuery(field);
+
+        TopDocs results = roleIndexSearcher.search(query, maxResults);
+
+        if (results.totalHits < 1) {
+            System.out.println("Did not find any relevant docs for role " + role.getName());
+            return;
+        }
+
+        ScoreDoc[] hits = results.scoreDocs;
+        //update role scores for all documents relevant for this role vector
+        for(ScoreDoc hit : hits) {
+            Document oldDoc = roleIndexReader.document(hit.doc);
+
+            Document newDoc = new Document();
+
+            Field idField = new StringField("id", oldDoc.getField("id").stringValue(), Field.Store.YES);
+            newDoc.add(idField);
+
+            Field pathField = new StringField("path", oldDoc.getField("path").stringValue(), Field.Store.YES);
+            newDoc.add(pathField);
+
+            //newDoc.add(new LongField("modified", (Long) oldDoc.getField("modified").numericValue(), Field.Store.YES));
+
+            TextField contentsField = new TextField("contents", oldDoc.getField("contents").stringValue(), Field.Store.YES);
+            newDoc.add(contentsField);
+
+            List<Role> roles = roleReader.getRoles();
+            for (Role r : roles) {
+                Float roleScore = (Float) oldDoc.getField(r.getName()).numericValue();
+                if(r.getName().equals(role.getName())) {
+                    //set new role score value
+                    roleScore = 2 * hit.score + 1;
+                }
+
+                Field roleScoreField = new FloatField(r.getName(), roleScore, Field.Store.YES);
+                newDoc.add(roleScoreField);
+            }
+
+            writer.deleteDocuments(new Term("id", oldDoc.get("id")));
+            writer.commit();
+
+            writer.addDocument(newDoc);
+
+            /*Document doc = roleIndexReader.document(hit.doc);
+
+            Field f = (Field) doc.getField(role.getName());
+            f.setFloatValue(hit.score);
+
+            doc.removeField(role.getName());
+            doc.add(f);
+
+            writer.updateDocument(new JobTerm("path", doc.get("path")), doc);
+            writer.commit();   */
+        }
+    }
 
     public void printAllDocsWithRoleScores() {
 
         try {
-            Directory roleIndexDir = FSDirectory.open(new File(roleIndexPath));
+            Directory roleIndexDir = FSDirectory.open(new File(culIndexPath));
             IndexReader reader = DirectoryReader.open(roleIndexDir);
+
+            int counter = 0;
 
             for (int i=0; i<reader.maxDoc(); i++) {
 
                 Document doc = reader.document(i);
-                String docId = doc.get("docId");
-                String path = doc.get("path");
-                String roleScores = "";
 
-                for (Role role : roleReader.getRoles()) {
-                    roleScores += role.getName() + ": " + doc.getField(role.getName()).numericValue() + "; ";
+
+                /*if (doc.get("id").equals("9006044"))
+                {
+                    int j=0;
+                }*/
+                if ((Float) doc.getField("marketing-internet").numericValue() == 0.0) {
+                    continue;
                 }
+                counter ++;
 
-                System.out.println(docId + ": " + path + ": " + roleScores);
+                List<IndexableField> fields = doc.getFields();
+                System.out.print("\n Document>>> " + counter);
+                for (IndexableField field:fields) {
+                    String value = field.stringValue();
+
+                    if (StringUtils.isNullOrEmpty(value)) {
+                        value = String.valueOf(field.numericValue());
+                    }
+
+                    if (value != null && value.length() > 30) {
+                        value = value.substring(0, 26) + "...";
+                    }
+
+                    System.out.print("; " + field.name() + ": " + value);
+                }
             }
 
         } catch (IOException e) {

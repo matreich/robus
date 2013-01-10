@@ -33,10 +33,10 @@
         <mapping class="org.reichhold.robus.jobs.CleanJobAd" />
         <mapping class="org.reichhold.robus.roles.Role" />
         <mapping class="org.reichhold.robus.roles.RoleTerm" />
-        <mapping class="org.reichhold.robus.citeUlike.CulUser" />
-        <mapping class="org.reichhold.robus.citeUlike.CulDocument" />
-        <mapping class="org.reichhold.robus.citeUlike.CulTag" />
-        <mapping class="org.reichhold.robus.citeUlike.CulAssignment" />
+        <mapping class="org.reichhold.robus.citeulike.CulUser" />
+        <mapping class="org.reichhold.robus.citeulike.CulDocument" />
+        <mapping class="org.reichhold.robus.citeulike.CulTag" />
+        <mapping class="org.reichhold.robus.citeulike.CulAssignment" />
 
     </session-factory>
 

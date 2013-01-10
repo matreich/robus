@@ -41,7 +41,7 @@ public class RoleScoreQuery extends CustomScoreQuery {
                 float weight = 1.0f;
                 float mergedScore = subQueryScore + weight * valSrcScore;
 
-                System.out.println("Computing score --> defaultScore: " + subQueryScore + " roleScore: " + valSrcScore  + " = mergedScore: " + mergedScore);
+                //System.out.println("Computing score --> defaultScore: " + subQueryScore + " roleScore: " + valSrcScore  + " = mergedScore: " + mergedScore);
                 return mergedScore;
             }
         };

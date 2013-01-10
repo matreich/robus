@@ -1,9 +1,8 @@
 package org.reichhold.robus;
 
-import com.google.gson.Gson;
-import org.reichhold.robus.citeUlike.CulFileReader;
-import org.reichhold.robus.citeUlike.CulWebReader;
-import org.reichhold.robus.citeUlike.RoleCreator;
+import org.reichhold.robus.citeulike.CulFileReader;
+import org.reichhold.robus.citeulike.CulWebReader;
+import org.reichhold.robus.citeulike.RoleCreator;
 import org.reichhold.robus.jobs.DataCleaner;
 import org.reichhold.robus.jobs.LinkedInCrawler;
 import org.reichhold.robus.lucene.LuceneIndex;
@@ -17,11 +16,21 @@ import java.util.Scanner;
 public class Robus {
     public static void main(String[] args)
     {
+        //create user roles from citulike users & tags
+        //loadUserRoles();
+
+        //Load title and abstract from citeUlike.org
+        //loadCiteUlikeMetaData();
+
         // Create Lucene Index
         //createLuceneIndex();
 
+        Evaluator evaluator = new Evaluator();
+        evaluator.doMapEvaluation();
+
+
         /* create role vectors */
-        //createRoleTermVectors();
+        //updateRolesByOrganisation();
 
         //create access tokens for LinkedIn API
         //createLinedInTokens();
@@ -32,11 +41,6 @@ public class Robus {
         //Save citeUlike data set from file to db
         //createCiteUlikeData();
 
-        //Load title and abstract from citeUlike.org
-        loadCiteUlikeMetaData();
-
-        //create user roles from citulike users & tags
-        //loadUserRoles();
 
         //************** test functions ****************
 
@@ -53,13 +57,14 @@ public class Robus {
     private static void loadUserRoles() {
         RoleCreator roles = new RoleCreator();
         //roles.createUserRoles("java");
-        roles.createUserRoles("analysis");
+        roles.createUserRoles();
     }
 
     private static void loadCiteUlikeMetaData() {
 
         CulWebReader reader = new CulWebReader();
-        reader.loadAllTitlesAndAbstracts();
+        //reader.loadAllTitlesAndAbstracts();
+        reader.loadTitlesAndAbtractsForQuery("internet");
     }
 
     private static void createCiteUlikeData() {
@@ -77,7 +82,7 @@ public class Robus {
         //nlp.textToChunks(text);
     }
 
-    private static void createRoleTermVectors() {
+    private static void updateRolesByOrganisation() {
         RoleWriter roles = new RoleWriter();
         roles.updateRoles("EvalCo");
     }
@@ -87,7 +92,8 @@ public class Robus {
      */
     private static void createLuceneIndex() {
         LuceneIndex indexer = new LuceneIndex();
-        indexer.createIndexes();
+        //indexer.createIndexes();
+        indexer.createCulIndex(true);
         indexer.computeRoleScores();
         //indexer.printAllDocsWithRoleScores();
     }
@@ -123,9 +129,5 @@ public class Robus {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
         Reader reader = new BufferedReader((new InputStreamReader(is, Charset.forName("UTF-8"))));
-
-        Gson gson = new Gson();
-        gson.fromJson(reader, Object.class);
-        String text = gson.toString();
     }
 }

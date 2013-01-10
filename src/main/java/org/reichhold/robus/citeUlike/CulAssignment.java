@@ -1,4 +1,4 @@
-package org.reichhold.robus.citeUlike;
+package org.reichhold.robus.citeulike;
 
 import org.hibernate.annotations.Index;
 

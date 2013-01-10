@@ -1,4 +1,4 @@
-package org.reichhold.robus.citeUlike;
+package org.reichhold.robus.citeulike;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,7 +25,7 @@ public class CulWebReader {
         int number = 100;
 
         //IP gets blocked if moe then maxNumber requests are sent...
-        int maxNumber = 1000;
+        int maxNumber = 5000;
         int counter = 0;
 
         while (number > 0 && counter < maxNumber) {
@@ -57,7 +57,7 @@ public class CulWebReader {
         try {
             URL u = new URL(url);
             URLConnection hc = u.openConnection();
-            hc.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
+            hc.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.7; de-AT; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
             is = hc.getInputStream();
             //is = new URL(url).openStream();
 
@@ -128,9 +128,9 @@ public class CulWebReader {
             json = json.substring(0, end+1);
         }
 
-        if (json.contains("Your IP has been blocked")) {
-            System.out.println("Your IP has been blocked");
-            System.out.println(json);
+        if (sb.toString().contains("Your IP has been blocked")) {
+            //System.out.println("Your IP has been blocked");
+            System.out.println(sb.toString());
             System.exit(1);
         }
 
@@ -138,4 +138,22 @@ public class CulWebReader {
     }
 
 
+    public void loadTitlesAndAbtractsForQuery(String query) {
+
+        while (true) {
+            store = new DataStore();
+            List<CulDocument> docs = store.getDocumentsByTag(query);
+
+            if (docs.size() == 0) {
+                return;
+            }
+
+            for (CulDocument doc : docs) {
+                setCulDocumentMetaData(doc);
+            }
+            store.saveOrUpdateObjects(docs, "CulDocument");
+            store.closeSession();
+            System.out.println(docs.size() + " docs processed");
+        }
+    }
 }

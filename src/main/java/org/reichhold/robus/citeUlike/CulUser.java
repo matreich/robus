@@ -1,4 +1,4 @@
-package org.reichhold.robus.citeUlike;
+package org.reichhold.robus.citeulike;
 
 import javax.persistence.*;
 import java.util.List;
@@ -25,6 +25,10 @@ public class CulUser {
     private List<CulAssignment> assignments;
 
     public CulUser() {
+    }
+
+    public CulUser(String id) {
+        this.id = id;
     }
 
     public String getId() {

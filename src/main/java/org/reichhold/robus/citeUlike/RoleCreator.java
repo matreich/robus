@@ -1,4 +1,4 @@
-package org.reichhold.robus.citeUlike;
+package org.reichhold.robus.citeulike;
 
 import com.mysql.jdbc.StringUtils;
 import org.reichhold.robus.db.DataStore;
@@ -20,6 +20,7 @@ public class RoleCreator {
     private String searchTag;
 
     public RoleCreator() {
+
         organisation = "CiteULike";
         //searchTag = "java";
     }
@@ -30,8 +31,26 @@ public class RoleCreator {
      */
     public void createUserRoles(String searchTag) {
         this.searchTag = searchTag;
-        store = new DataStore();
+
         List<CulUser> users = store.getCulUsersByTag(searchTag, 200);
+
+        createUserRoles(users);
+    }
+
+    public void createUserRoles() {
+        //this.searchTag = searchTag;
+        //store = new DataStore();
+        List<CulUser> users = new ArrayList<CulUser>();
+        users.add(new CulUser("617e233adc60a7573c5e5025358250fd"));  //internet-marketing
+
+        users.add(new CulUser("fd72178f9f812a46ba4f7c599858cd7a"));  //security internet
+
+        createUserRoles(users);
+    }
+
+    private void createUserRoles(List<CulUser> users) {
+        store = new DataStore();
+        DataStore userStore = new DataStore();
 
         stopwords = loadStopwords();
         String roleName;
@@ -44,7 +63,7 @@ public class RoleCreator {
             }
 
             user.setRobusRole(roleName);
-            store.saveOrUpdateObject(user);
+            userStore.saveOrUpdateObject(user);
         }
 
         //create role terms for newly added roles
@@ -57,8 +76,8 @@ public class RoleCreator {
         List<CulAssignment> assignments = store.getAssignmentsForUser(userId);
         Map<String, Integer> tags = new HashMap<String, Integer>();
 
-        //only consider users with >100 and <500 tags
-        if (assignments.size() < 70 || assignments.size() > 800) {
+        //only consider users with >n and <m tags
+        if (assignments.size() < 40 || assignments.size() > 1000) {
             //System.out.println("Number of tags out of range. user: " + userId + "; number of tags: " + assignments.size());
             return "";
         }
@@ -102,9 +121,9 @@ public class RoleCreator {
         keyword2 = it.next();
         keyword2 = splitTags(keyword2);
 
-        if (!keyword1.contains(searchTag) && !keyword2.contains(searchTag)) {
+        /*if (!keyword1.contains(searchTag) && !keyword2.contains(searchTag)) {
             return "";
-        }
+        }*/
 
         Role role = new Role();
         role.setKeyword1(keyword1);
@@ -194,6 +213,7 @@ public class RoleCreator {
         stopwords.add("have");
         stopwords.add("how-to");
         stopwords.add("googlescholar");
+        stopwords.add("google-scholar");
         stopwords.add("citeulike");
         stopwords.add("job");
         stopwords.add("diss");
