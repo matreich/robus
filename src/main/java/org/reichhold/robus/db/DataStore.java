@@ -511,7 +511,10 @@ public class DataStore {
     public List<CulDocument> getDocumentsByTag(String query) {
         Transaction tx = session.beginTransaction();
 
-        Query q = session.createSQLQuery("select distinct(document) from cul_assignment where tag = 'internet'");
+        CulTag tag = (CulTag) session.get(CulTag.class, query);
+
+        Query q = session.createSQLQuery("select distinct(document) from cul_assignment where tag = :tag");
+        q.setParameter("tag", tag);
         //and (user = 'fd72178f9f812a46ba4f7c599858cd7a' or user = '617e233adc60a7573c5e5025358250fd')
 
         List<CulDocument> result = new ArrayList<CulDocument>();

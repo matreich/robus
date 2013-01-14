@@ -17,26 +17,27 @@ public class Robus {
     public static void main(String[] args)
     {
         //create user roles from citulike users & tags
-        loadUserRoles();
+        //loadUserRoles();
 
         //Load title and abstract from citeUlike.org
         //loadCiteUlikeMetaData();
 
         // Create Lucene Index
-        createLuceneIndex();
+        //createCulIndex();
 
         Evaluator evaluator = new Evaluator();
-        evaluator.doMapEvaluation();
+        //evaluator.doMapEvaluation();
 
 
         /* create role vectors */
-        //updateRolesByOrganisation();
+        updateRolesByOrganisation();
 
         //create access tokens for LinkedIn API
         //createLinedInTokens();
 
         //Getting detailed job advertisement data from linkedIn
         //createJobAdDetails();
+        //createJobAdIndex();
 
         //Save citeUlike data set from file to db
         //createCiteUlikeData();
@@ -46,7 +47,6 @@ public class Robus {
 
         //testJson();
 
-        //testGson();
         //testNlpChunker();
 
         //Split TREC archive files into single HTML files
@@ -64,7 +64,9 @@ public class Robus {
 
         CulWebReader reader = new CulWebReader();
         //reader.loadAllTitlesAndAbstracts();
-        reader.loadTitlesAndAbtractsForQuery("internet");
+        //reader.loadTitlesAndAbtractsForQuery("internet");
+        reader.loadTitlesAndAbtractsForQuery("database");
+
     }
 
     private static void createCiteUlikeData() {
@@ -84,17 +86,23 @@ public class Robus {
 
     private static void updateRolesByOrganisation() {
         RoleWriter roles = new RoleWriter();
-        roles.updateRoles("EvalCo");
+        roles.updateRoles("CiteULike");
     }
 
     /***
      * adds all given (HTML) documents
      */
-    private static void createLuceneIndex() {
+    private static void createCulIndex() {
         LuceneIndex indexer = new LuceneIndex();
         //indexer.createIndexes();
         indexer.createCulIndex(true, false);
         //indexer.printAllDocsWithRoleScores();
+    }
+
+    private static void createJobAdIndex() {
+        LuceneIndex indexer = new LuceneIndex();
+        //indexer.createIndexes();
+        indexer.createJobAdIndex(true, false);
     }
 
     private static void createLinedInTokens() {

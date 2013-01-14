@@ -20,6 +20,7 @@ import org.hibernate.Session;
 import org.jsoup.Jsoup;
 import org.reichhold.robus.citeulike.CulDocument;
 import org.reichhold.robus.db.DataStore;
+import org.reichhold.robus.jobs.CleanJobAd;
 import org.reichhold.robus.roles.Role;
 import org.reichhold.robus.roles.RoleReader;
 
@@ -39,20 +40,22 @@ public class LuceneIndex {
     private String docsPath;
     private RoleReader roleReader;
     private final String culIndexPath;
+    private final String jobAdIndexPath;
 
     public LuceneIndex() {
         defaultIndexPath = "/Users/matthias/Documents/workspace/robus/src/main/resources/defaultIndex";
         roleIndexPath = "/Users/matthias/Documents/workspace/robus/src/main/resources/roleIndex";
         docsPath = "/Volumes/Daten/Robus/Resources/TrecHtmlDemo/";
         culIndexPath = "/Users/matthias/Documents/workspace/robus/src/main/resources/culIndex";
+        jobAdIndexPath = "/Users/matthias/Documents/workspace/robus/src/main/resources/jobAdIndex";
 
         roleReader = new RoleReader();
         roleReader.loadRoles("CiteULike");
     }
 
     public void createIndexes() {
-        //createIndex(defaultIndexPath, docsPath, true, false);
-        createIndex(roleIndexPath, docsPath, true, true);
+        //createFileIndex(defaultIndexPath, docsPath, true, false);
+        createFileIndex(roleIndexPath, docsPath, true, true);
     }
 
     /***
@@ -159,6 +162,109 @@ public class LuceneIndex {
         }
     }
 
+    /***
+     * creates an index for all documents stored in CleanJobAd
+     * @param create
+     * @param createRoleScoreFields
+     */
+    public void createJobAdIndex(boolean create, boolean createRoleScoreFields) {
+        try {
+            Directory dir = FSDirectory.open(new File(jobAdIndexPath));
+            Analyzer analyzer = new EnglishAnalyzer(Version.LUCENE_40);
+            IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
+            iwc.setSimilarity(new BM25Similarity());
+
+            if (create) {
+                iwc.setOpenMode(OpenMode.CREATE);
+            } else {
+                iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
+            }
+
+            IndexWriter writer = new IndexWriter(dir, iwc);
+            System.out.println("Indexing CleanJobAds to directory '" + jobAdIndexPath + "'...");
+
+            //get cul_documents
+            DataStore store = new DataStore();
+            String queryString = "from CleanJobAd where title is not null";
+            Session session = store.getSession();
+            Query q = session.createQuery(queryString);
+            ScrollableResults results = q.scroll();
+
+            int counter = 0;
+
+            while (results.next() )
+            {
+                CleanJobAd job = (CleanJobAd) results.get(0);
+                indexJobAdDocument(job, writer, createRoleScoreFields);
+                counter += 1;
+                clearSessionCache(counter, session);
+            }
+
+            results.close();
+            session.close();
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+        if (createRoleScoreFields) {
+            this.computeRoleScores();
+        }
+    }
+
+    private void indexJobAdDocument(CleanJobAd jobAd, IndexWriter writer, boolean createRoleScoreFields) {
+        Document doc = new Document();
+
+        // Add the path of the file as a field named "path".  Use a
+        // field that is indexed (i.e. searchable), but don't tokenize
+        // the field into separate words and don't index term frequency
+        // or positional information:
+        Field idField = new StringField("jobId", jobAd.getJobId(), Field.Store.YES);
+        doc.add(idField);
+
+        String title = jobAd.getTitle() + ". ";
+        String description = jobAd.getDescription() + ". ";
+        String skills = jobAd.getSkills();
+
+        //store both texts into one field
+        TextField field = new TextField("contents", title + description + skills, Field.Store.YES);
+        doc.add(field);
+
+        if (createRoleScoreFields) {
+            //create role score fields for each defined role
+            float roleRelevance = 0.0f;
+
+            List<Role> roles = roleReader.getRoles();
+            for (Role role : roles) {
+                Field roleScoreField = new FloatField(role.getName(), roleRelevance, Field.Store.YES);
+
+                doc.add(roleScoreField);
+            }
+        }
+
+        if (writer.getConfig().getOpenMode() == OpenMode.CREATE) {
+            try {
+                writer.addDocument(doc);
+                System.out.println("adding CleanJobAd " + doc.get("jobId"));
+            } catch (IOException e) {
+                System.out.println("Error adding CleanJobAd " + doc.get("jobId"));
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+        }
+        else
+        {
+            try {
+                writer.updateDocument(new Term("id", doc.get("id")), doc);
+                System.out.println("updating cul_document " + doc.get("path"));
+            } catch (IOException e) {
+                System.out.println("Error updating cul_document" + doc.get("path"));
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+        }
+    }
+
+
     private void clearSessionCache(int counter, Session session) {
         if ( counter % 100 == 0) {
             session.flush();
@@ -173,7 +279,7 @@ public class LuceneIndex {
      * @param create if true, a new index will be created; else the existin one will be updated
      * @param setRoleScores if true, a field for each enterprise role is added to every document in the index
      */
-    private void createIndex(String indexPath, String docsPath, boolean create, boolean setRoleScores) {
+    private void createFileIndex(String indexPath, String docsPath, boolean create, boolean setRoleScores) {
 
         if (docsPath == null || indexPath == null) {
             System.err.println("indexPath and docsPath may not be null");
@@ -364,6 +470,10 @@ public class LuceneIndex {
         }
     }
 
+    /***
+     * role scores are computed at searching time ....
+     */
+    @Deprecated
     public void computeRoleScores() {
         try {
             Directory roleIndexDir = FSDirectory.open(new File(culIndexPath));

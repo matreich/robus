@@ -1,10 +1,28 @@
 package org.reichhold.robus.roles;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.Version;
+import org.hibernate.Session;
 import org.reichhold.robus.db.DataStore;
 import org.reichhold.robus.jobs.CleanJobAd;
 import org.reichhold.robus.roles.disco.DiscoReader;
 import org.reichhold.robus.roles.nlp.NlpHelper;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 
 /**
@@ -126,6 +144,48 @@ public class RoleWriter {
     }
 
     private List<CleanJobAd> getJobAds(Role role, int maxJobAds) {
-        return store.getCleanJobAdsByRole(role, maxJobAds);
+
+        //get job ads (that contain the keyword in their title) from the db
+        //return store.getCleanJobAdsByRole(role, maxJobAds);
+
+        IndexReader reader;
+        IndexSearcher searcher;
+        Analyzer analyzer;
+        QueryParser parser;
+        String indexPath = "/Users/matthias/Documents/workspace/robus/src/main/resources/jobAdIndex";
+        String queryString = role.getKeyword1() + " " + role.getKeyword2();
+        List<CleanJobAd> jobs = new ArrayList<CleanJobAd>();
+
+        try {
+            store = new DataStore();
+            reader = DirectoryReader.open(FSDirectory.open(new File(indexPath)));
+            searcher = new IndexSearcher(reader);
+            analyzer = new EnglishAnalyzer(Version.LUCENE_40);
+            parser = new QueryParser(Version.LUCENE_40, "contents", analyzer);
+            searcher.setSimilarity(new BM25Similarity());
+
+            Query query = parser.parse(queryString);
+            TopDocs results = searcher.search(query, null, maxJobAds);
+
+            ScoreDoc[] hits = results.scoreDocs;
+
+            CleanJobAd job;
+            Session session = store.getSession();
+            for (int i=0; i<hits.length; i++) {
+                String id = searcher.doc(hits[i].doc).get("jobId");
+                job = (CleanJobAd) session.get(CleanJobAd.class, id);
+                jobs.add(job);
+            }
+
+            //printResult(result);
+        } catch (ParseException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (Exception e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } finally {
+            return jobs;
+        }
     }
 }
