@@ -2,7 +2,7 @@ package org.reichhold.robus.lucene;
 
 import com.mysql.jdbc.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.*;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -10,6 +10,7 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
@@ -59,11 +60,12 @@ public class LuceneIndex {
      * @param create if true: Creates a new index in the directory, removing any previously indexed documents;
      *                  else: Adds new documents to an existing index
      */
-    public void createCulIndex(boolean create) {
+    public void createCulIndex(boolean create, boolean createRoleScoreFields) {
         try {
             Directory dir = FSDirectory.open(new File(culIndexPath));
-            Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
+            Analyzer analyzer = new EnglishAnalyzer(Version.LUCENE_40);
             IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
+            iwc.setSimilarity(new BM25Similarity());
 
             if (create) {
                 iwc.setOpenMode(OpenMode.CREATE);
@@ -75,11 +77,10 @@ public class LuceneIndex {
             System.out.println("Indexing cul_documents to directory '" + culIndexPath + "'...");
 
             //get cul_documents
-
             DataStore store = new DataStore();
-            String queryyString = "from CulDocument where contentAbstract != 'n/a'";
+            String queryString = "from CulDocument where path is not null";
             Session session = store.getSession();
-            Query q = session.createQuery(queryyString);
+            Query q = session.createQuery(queryString);
             ScrollableResults results = q.scroll();
 
             int counter = 0;
@@ -87,13 +88,9 @@ public class LuceneIndex {
             while (results.next() )
             {
                 CulDocument cul = (CulDocument) results.get(0);
-                indexCulDocument(cul, writer);
+                indexCulDocument(cul, writer, createRoleScoreFields);
                 counter += 1;
                 clearSessionCache(counter, session);
-
-                //todo: just for testing
-                /*if (counter == 10)
-                    break;*/
             }
 
             results.close();
@@ -103,9 +100,13 @@ public class LuceneIndex {
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
+
+        if (createRoleScoreFields) {
+            this.computeRoleScores();
+        }
     }
 
-    private void indexCulDocument(CulDocument cul, IndexWriter writer) {
+    private void indexCulDocument(CulDocument cul, IndexWriter writer, boolean createRoleScoreFields) {
         Document doc = new Document();
 
         // Add the path of the file as a field named "path".  Use a
@@ -125,14 +126,16 @@ public class LuceneIndex {
         TextField field = new TextField("contents", title + content, Field.Store.YES);
         doc.add(field);
 
-        //create role score fields for each defined role
-        float roleRelevance = 0.0f;
+        if (createRoleScoreFields) {
+            //create role score fields for each defined role
+            float roleRelevance = 0.0f;
 
-        List<Role> roles = roleReader.getRoles();
-        for (Role role : roles) {
-            Field roleScoreField = new FloatField(role.getName(), roleRelevance, Field.Store.YES);
+            List<Role> roles = roleReader.getRoles();
+            for (Role role : roles) {
+                Field roleScoreField = new FloatField(role.getName(), roleRelevance, Field.Store.YES);
 
-            doc.add(roleScoreField);
+                doc.add(roleScoreField);
+            }
         }
 
         if (writer.getConfig().getOpenMode() == OpenMode.CREATE) {
@@ -188,7 +191,7 @@ public class LuceneIndex {
             System.out.println("Indexing to directory '" + indexPath + "'...");
 
             Directory dir = FSDirectory.open(new File(indexPath));
-            Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
+            Analyzer analyzer = new EnglishAnalyzer(Version.LUCENE_40);
             IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
 
             if (create) {
@@ -366,7 +369,7 @@ public class LuceneIndex {
             Directory roleIndexDir = FSDirectory.open(new File(culIndexPath));
 
 
-            Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
+            Analyzer analyzer = new EnglishAnalyzer(Version.LUCENE_40);
             String field = "contents";
 
             IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
@@ -398,7 +401,10 @@ public class LuceneIndex {
             IndexReader roleIndexReader = DirectoryReader.open(roleIndexDir);
             IndexSearcher roleIndexSearcher = new IndexSearcher(roleIndexReader);
 
-            Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
+            Analyzer analyzer;
+            //analyzer = new StandardAnalyzer(Version.LUCENE_40);
+            analyzer = new EnglishAnalyzer(Version.LUCENE_40);
+
             String field = "contents";
 
             IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
@@ -455,6 +461,7 @@ public class LuceneIndex {
                 Float roleScore = (Float) oldDoc.getField(r.getName()).numericValue();
                 if(r.getName().equals(role.getName())) {
                     //set new role score value
+                    //todo: move to role score query!
                     roleScore = 2 * hit.score + 1;
                 }
 

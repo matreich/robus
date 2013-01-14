@@ -38,8 +38,9 @@ public class RoleScoreQuery extends CustomScoreQuery {
             @Override
             public float customScore(int doc, float subQueryScore, float valSrcScore){
                 //merge scores; formular = http://research.microsoft.com/pubs/145110/sheldonssc-lambdamerge-wsdm11.pdf
-                float weight = 1.0f;
-                float mergedScore = subQueryScore + weight * valSrcScore;
+                float weight = 0.8f;
+
+                float mergedScore = (1 - weight) * subQueryScore + weight * valSrcScore;
 
                 //System.out.println("Computing score --> defaultScore: " + subQueryScore + " roleScore: " + valSrcScore  + " = mergedScore: " + mergedScore);
                 return mergedScore;

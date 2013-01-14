@@ -17,13 +17,13 @@ public class Robus {
     public static void main(String[] args)
     {
         //create user roles from citulike users & tags
-        //loadUserRoles();
+        loadUserRoles();
 
         //Load title and abstract from citeUlike.org
         //loadCiteUlikeMetaData();
 
         // Create Lucene Index
-        //createLuceneIndex();
+        createLuceneIndex();
 
         Evaluator evaluator = new Evaluator();
         evaluator.doMapEvaluation();
@@ -56,7 +56,7 @@ public class Robus {
 
     private static void loadUserRoles() {
         RoleCreator roles = new RoleCreator();
-        //roles.createUserRoles("java");
+        //roles.createUserRoles("internet");
         roles.createUserRoles();
     }
 
@@ -93,8 +93,7 @@ public class Robus {
     private static void createLuceneIndex() {
         LuceneIndex indexer = new LuceneIndex();
         //indexer.createIndexes();
-        indexer.createCulIndex(true);
-        indexer.computeRoleScores();
+        indexer.createCulIndex(true, false);
         //indexer.printAllDocsWithRoleScores();
     }
 
