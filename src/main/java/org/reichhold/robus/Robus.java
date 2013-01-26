@@ -1,8 +1,10 @@
 package org.reichhold.robus;
 
 import org.reichhold.robus.citeulike.CulFileReader;
+import org.reichhold.robus.citeulike.CulUser;
 import org.reichhold.robus.citeulike.CulWebReader;
 import org.reichhold.robus.citeulike.RoleCreator;
+import org.reichhold.robus.db.DataStore;
 import org.reichhold.robus.jobs.DataCleaner;
 import org.reichhold.robus.jobs.LinkedInCrawler;
 import org.reichhold.robus.lucene.LuceneIndex;
@@ -11,6 +13,7 @@ import org.reichhold.robus.roles.RoleWriter;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Scanner;
 
 public class Robus {
@@ -26,11 +29,11 @@ public class Robus {
         //createCulIndex();
 
         Evaluator evaluator = new Evaluator();
-        //evaluator.doMapEvaluation();
+        evaluator.doMapEvaluation();
 
 
         /* create role vectors */
-        updateRolesByOrganisation();
+        //updateRolesByOrganisation();
 
         //create access tokens for LinkedIn API
         //createLinedInTokens();
@@ -57,16 +60,23 @@ public class Robus {
     private static void loadUserRoles() {
         RoleCreator roles = new RoleCreator();
         //roles.createUserRoles("internet");
-        roles.createUserRoles();
+        //roles.createUserRoles();
+        RoleWriter writer = new RoleWriter();
+        writer.updateRoles("culTest");
     }
 
     private static void loadCiteUlikeMetaData() {
 
         CulWebReader reader = new CulWebReader();
         //reader.loadAllTitlesAndAbstracts();
-        //reader.loadTitlesAndAbtractsForQuery("internet");
-        reader.loadTitlesAndAbtractsForQuery("database");
-
+        //reader.loadTitlesAndAbtractsForTag("internet");
+        //reader.loadTitlesAndAbtractsForTag("database");
+        DataStore store = new DataStore();
+        List<CulUser> users = store.getCulUsersByNumberOfTags(1500, 100);
+        for (CulUser user:users) {
+            String query = "select distinct(document) from cul_assignment where user = '" + user.getId() + "'";
+            reader.loadTitlesAndAbtractsForSqlQuery(query);
+        }
     }
 
     private static void createCiteUlikeData() {

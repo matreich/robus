@@ -90,10 +90,17 @@ public class Role {
     public BooleanQuery getBooleanQuery(String field) {
         BooleanQuery query = new BooleanQuery();
 
+        int maxTerms = 20;
+        int i = 0;
+
         for (RoleTerm term : roleTerms) {
+            if (i >= maxTerms) {
+                break;
+            }
             TermQuery tq = new TermQuery(new Term(field, term.getTerm()));
             tq.setBoost(term.getWeight());
             query.add(tq, BooleanClause.Occur.SHOULD);
+            i++;
         }
 
         return query;

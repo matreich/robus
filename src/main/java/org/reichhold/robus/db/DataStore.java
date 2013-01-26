@@ -497,6 +497,29 @@ public class DataStore {
         return result;
     }
 
+    public List<CulUser> getCulUsersByNumberOfTags(int numberTags, int maxResults) {
+
+        int min = numberTags - 50;
+        int max = numberTags + 50;
+        Transaction tx = session.beginTransaction();
+
+        Query q = session.createSQLQuery("select user from ( select user, count(*) c from cul_assignment group by user) ca2 where c > :min and c < :max");
+        //Query q = session.createSQLQuery("select user from ( select user, count(*) c from cul_assignment group by user) ca2 where c > 98 and c < 102");
+        q.setParameter("min", min);
+        q.setParameter("max", max);
+        q.setMaxResults(maxResults);
+        List<String> results = q.list();
+
+        tx.commit();
+
+        List<CulUser> users = new ArrayList<CulUser>();
+        for (String result:results) {
+            users.add((CulUser) session.get(CulUser.class, result));
+        }
+
+        return users;
+    }
+
     public CulUser getCulUserByRoleName(String role) {
         Transaction tx = session.beginTransaction();
 
@@ -508,14 +531,41 @@ public class DataStore {
         return user;
     }
 
-    public List<CulDocument> getDocumentsByTag(String query) {
+    public List<CulDocument> getDocumentsByTag(String tagTerm) {
         Transaction tx = session.beginTransaction();
 
-        CulTag tag = (CulTag) session.get(CulTag.class, query);
+        CulTag tag = (CulTag) session.get(CulTag.class, tagTerm);
 
         Query q = session.createSQLQuery("select distinct(document) from cul_assignment where tag = :tag");
         q.setParameter("tag", tag);
         //and (user = 'fd72178f9f812a46ba4f7c599858cd7a' or user = '617e233adc60a7573c5e5025358250fd')
+
+        List<CulDocument> result = new ArrayList<CulDocument>();
+        ScrollableResults results = q.scroll();
+
+        while (results.next()) {
+
+            CulDocument doc = (CulDocument) session.get(CulDocument.class, (String)results.get(0));
+
+            if(!StringUtils.isNullOrEmpty(doc.getPath())) {
+                continue;
+            }
+
+            result.add(doc);
+            if (result.size() == 100) {
+                break;
+            }
+        }
+
+        tx.commit();
+
+        return result;
+    }
+
+    public List<CulDocument> getDocumentsBySqlQuery(String query) {
+        Transaction tx = session.beginTransaction();
+
+        Query q = session.createSQLQuery(query);
 
         List<CulDocument> result = new ArrayList<CulDocument>();
         ScrollableResults results = q.scroll();

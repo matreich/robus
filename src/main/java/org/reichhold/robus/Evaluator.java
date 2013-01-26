@@ -2,14 +2,14 @@ package org.reichhold.robus;
 
 import org.reichhold.robus.citeulike.CulAssignment;
 import org.reichhold.robus.citeulike.CulUser;
+import org.reichhold.robus.citeulike.RoleCreator;
 import org.reichhold.robus.db.DataStore;
 import org.reichhold.robus.lucene.LuceneSearcher;
 import org.reichhold.robus.lucene.RoleSearchResult;
 import org.reichhold.robus.roles.Role;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * User: matthias
@@ -18,24 +18,81 @@ import java.util.List;
 public class Evaluator {
 
     public void doMapEvaluation(){
-        List<String> queries = new ArrayList<String>();
-        queries.add("internet");
+        //List<String> queries = new ArrayList<String>();
+        //queries.add("internet");
+        //queries.add("database");
         //queries.add("business");
 
         DataStore store = new DataStore();
         List<Role> roles;
-        roles = store.getRolesByOrganisation("CiteULike");
+        roles = store.getRolesByOrganisation("CUL1500");
         //roles = store.getRoles("CiteULike", "marketing-internet");
 
         LuceneSearcher searcher = new LuceneSearcher();
-        int maxResults = 500;
-        //perform non-role-sensitive search
-        List<RoleSearchResult> resultsStandard = searcher.doStandardSearches(queries, maxResults);
+        int maxResults =100;
 
         Float mMapStandard = 0.0f;
         Float mMapRoles = 0.0f;
 
+        RoleCreator roleCreator = new RoleCreator();
+
         for (Role role:roles) {
+            Map<String, Integer> tagMap = new HashMap<String, Integer>();
+            List<String> queries = new ArrayList<String>();
+
+            CulUser culUser = store.getCulUserByRoleName(role.getName());
+            if(culUser == null) {
+                System.out.println("Could not find a CulUser for role " + role.getName());
+                continue;
+            }
+
+
+            List<CulAssignment> cas = culUser.getAssignments();
+            if(cas == null) {
+                continue;
+            }
+
+            for (CulAssignment ca:cas) {
+                String tag = ca.getTag().getTerm();
+                if (tag.length() < 3) {
+                    //ignore tags with only 2 characters
+                    continue;
+                }
+                if (tagMap.containsKey(tag)) {
+                    //increase number of occurences
+                    tagMap.put(tag, tagMap.get(tag) + 1);
+
+                }
+                else {
+                    tagMap.put(tag, 1);
+                }
+
+
+            }
+
+            //remove stop words
+            tagMap = roleCreator.removeStopwords(tagMap);
+
+            //sort entries by values desc
+            tagMap = roleCreator.sortMap(tagMap, false);
+
+            //load top n tags as queries
+
+            int maxQueries = 10;
+            if (tagMap.size() < maxQueries ) {
+                maxQueries = tagMap.size();
+            }
+
+            Iterator<String> it = tagMap.keySet().iterator();
+            for (int i=0; i<maxQueries; i++) {
+                String query = it.next();
+                queries.add(query);
+            }
+            //queries.add("sustainability");
+
+            //perform non-role-sensitive search
+            List<RoleSearchResult> resultsStandard = searcher.doStandardSearches(queries, maxResults);
+
             //perform role-sensitive search for every query
             List<RoleSearchResult> resultsRole = searcher.doRoleSearches(role, queries, maxResults);
 
@@ -46,15 +103,18 @@ public class Evaluator {
             Float mapStandard = computeMAP(resultsStandard, role.getName());
             mMapStandard += mapStandard;
 
-            System.out.println("MAP for role-sensitive search = " + new DecimalFormat("0.0000").format(mapRole) +
-                    " vs. MAP for standard search = " + new DecimalFormat("0.0000").format(mapStandard) + " for Role " + role.getName());
+            System.out.println("MAP for role-sensitive search | " + new DecimalFormat("0.0000").format(mapRole) +
+                    " | MAP for standard search | " + new DecimalFormat("0.0000").format(mapStandard) + " | for Role " + role.getName());
         }
 
         mMapRoles = mMapRoles / roles.size();
         mMapStandard = mMapStandard / roles.size();
-        System.out.println("Overall MMAP for role-sensitive search: " + new DecimalFormat("0.0000").format(mMapRoles) +
-                " vs. MMAP for standard search: " + new DecimalFormat("0.0000").format(mMapStandard));
+        float improvement = 1.0f/mMapStandard * mMapRoles - 1;
 
+        System.out.println("Overall MMAP for role-sensitive search | " + new DecimalFormat("0.0000").format(mMapRoles) +
+                " | MMAP for standard search | " + new DecimalFormat("0.0000").format(mMapStandard) + " | improvement | " + new DecimalFormat("#.#%").format(improvement));
+
+        int i=0;
         //searcher.doStandardSearch("java");
         //searcher.doRoleSearch("JavaDeveloper", "java");
     }

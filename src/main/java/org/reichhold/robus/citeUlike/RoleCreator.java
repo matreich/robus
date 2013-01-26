@@ -34,52 +34,42 @@ public class RoleCreator {
         store = new DataStore();
         List<CulUser> users = store.getCulUsersByTag(searchTag, 200);
 
-        createUserRoles(users);
+        createUserRoles(users, "CUL100");
     }
 
     public void createUserRoles() {
-        //this.searchTag = searchTag;
-        //store = new DataStore();
         List<CulUser> users = new ArrayList<CulUser>();
         store = new DataStore();
+
         //for testing only...
         //users.add(new CulUser("617e233adc60a7573c5e5025358250fd"));  //internet-marketing
         //users.add(new CulUser("fd72178f9f812a46ba4f7c599858cd7a"));  //security internet
 
-        //users.add(new CulUser("ef2de765cfd116b097f856fc89a7ad3b"));
-        /*users.add((CulUser) store.getSession().get(CulUser.class, "3cae46f778208a44604d0f9f11d68bb7")); //proj rush-gaming
-        users.add((CulUser) store.getSession().get(CulUser.class, "544b91469cf57148441439345bf19d66")); //qos-reputation
-        users.add((CulUser) store.getSession().get(CulUser.class, "cd188e9d271d431d085d18d6a19027e5")); //elearning-sociology
-        users.add((CulUser) store.getSession().get(CulUser.class, "bd8087aebb88f77774ee79db517d150c"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "092d9718bef8d0e249859e1515107159")); //youth-lbs
-        users.add((CulUser) store.getSession().get(CulUser.class, "6730cfb9edf7d47646214a1117617adc"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "2511344952017f4db1b4d8fd57097d84"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "b959c2ac516b12379f502d7927745b04"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "707dfd6109f542a91c3b82b48fd765d0"));  //video-games */
+        /*users.add((CulUser) store.getSession().get(CulUser.class, "6c6607d9867205b88b4f024992e02d53"));
+        users.add((CulUser) store.getSession().get(CulUser.class, "d028927e630155f99aa0c564644dcb23"));
+        users.add((CulUser) store.getSession().get(CulUser.class, "c93dd93c877452c3d64fa8e148544d3b"));
+        users.add((CulUser) store.getSession().get(CulUser.class, "ac4f8a03e1046b06f89c309a019f4d70"));
+        users.add((CulUser) store.getSession().get(CulUser.class, "4b9e02136874b6a1b77903e066cbdc98"));
+        users.add((CulUser) store.getSession().get(CulUser.class, "3f0f34326d630fa692b4fe91a62d4b92"));
+        users.add((CulUser) store.getSession().get(CulUser.class, "2f4505a49b221ac047990e84d24c14ac"));
+        users.add((CulUser) store.getSession().get(CulUser.class, "0556114be83c6b3c7228e08d92525c96"));
+        users.add((CulUser) store.getSession().get(CulUser.class, "4115bb6343ed947b1f23550d879a9db9"));
+        users.add((CulUser) store.getSession().get(CulUser.class, "f143ae11633e71998e1111cd033b0d85"));*/
 
-        /*users.add((CulUser) store.getSession().get(CulUser.class, "d92e12c56d986b364124738e39086b42"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "3c753b2e1eca47da096f1e0facdbbd1c"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "e6df5c23e4df849ceda8a25f3d9ed19c"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "45e0ed2b4470502ac8679d71be43b570"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "71600709a869136d14565467985639c4"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "c976df1866e911b904abb7fa73afd187"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "eb2d0db0fb11eac6910400e1eff9b0f5"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "4e7d0bef93c8d92a958a47794239d43b"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "fd72178f9f812a46ba4f7c599858cd7a"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "b12e9d6ac5f324bd6de0db3c2b98ab15")); */
+        users = store.getCulUsersByNumberOfTags(1500, 100);
 
-        createUserRoles(users);
+        createUserRoles(users, "CUL1500");
     }
 
-    private void createUserRoles(List<CulUser> users) {
+    private void createUserRoles(List<CulUser> users, String organisation) {
         //store = new DataStore();
         //DataStore userStore = new DataStore();
 
-        stopwords = loadStopwords();
+        //stopwords = loadStopwords();
         String roleName;
 
         for( CulUser user:users) {
-            roleName = createUserRole(user);
+            roleName = createUserRole(user, organisation);
 
             if (StringUtils.isNullOrEmpty(roleName)) {
                 continue;
@@ -95,17 +85,17 @@ public class RoleCreator {
         roles.updateRoles(organisation);
     }
 
-    private String createUserRole(CulUser user) {
+    private String createUserRole(CulUser user, String organisation) {
 
         List<CulAssignment> assignments = user.getAssignments();
 
         Map<String, Integer> tags = new HashMap<String, Integer>();
 
         //only consider users with >n and <m tags
-        if (assignments.size() < 50 || assignments.size() > 50000) {
+        /*if (assignments.size() < 50 || assignments.size() > 50000) {
             //System.out.println("Number of tags out of range. user: " + userId + "; number of tags: " + assignments.size());
             return "";
-        }
+        }*/
 
         for (CulAssignment ca : assignments) {
             String tag = ca.getTag().getTerm();
@@ -168,16 +158,17 @@ public class RoleCreator {
         return result;
     }
 
-    private Map<String, Integer> removeStopwords(Map<String, Integer> tags) {
+    public Map<String, Integer> removeStopwords(Map<String, Integer> tags) {
+        stopwords = loadStopwords();
 
         Map<String, Integer> cleanTags = new HashMap<String, Integer>();
 
 
         for (String key : tags.keySet()) {
 
-            if (key.contains("file-import")) {
+            /*if (key.contains("file-import")) {
                 continue;
-            }
+            }*/
 
             if (stopwords.contains(key)) {
                 continue;
@@ -188,7 +179,7 @@ public class RoleCreator {
         return cleanTags;
     }
 
-    private Map<String, Integer> sortMap(Map<String, Integer> unsortMap, final boolean order)
+    public Map<String, Integer> sortMap(Map<String, Integer> unsortMap, final boolean order)
     {
 
         List<Map.Entry<String, Integer>> list = new LinkedList<Map.Entry<String, Integer>>(unsortMap.entrySet());

@@ -20,12 +20,10 @@ public class RoleScoreQuery extends CustomScoreQuery {
     }
 
     /***
-     * Use RoleScoreQuery(Query subQuery, String roleName)
      * Does only work, when scoringQuery finds a result for every resutl in subQuery.
      * @param subQuery the default query
      * @param scoringQuery the role vector
      */
-    @Deprecated
     public RoleScoreQuery(Query subQuery, Query scoringQuery) {
         super(subQuery, scoringQuery);
 
@@ -38,7 +36,13 @@ public class RoleScoreQuery extends CustomScoreQuery {
             @Override
             public float customScore(int doc, float subQueryScore, float valSrcScore){
                 //merge scores; formular = http://research.microsoft.com/pubs/145110/sheldonssc-lambdamerge-wsdm11.pdf
-                float weight = 0.8f;
+                float weight = 0.1f;
+
+                /*System.out.println(" ROLE SCORE " + valSrcScore +  " // " + subQueryScore);
+                if (valSrcScore == 0) {
+                    weight = 0;
+
+                }*/
 
                 float mergedScore = (1 - weight) * subQueryScore + weight * valSrcScore;
 

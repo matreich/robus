@@ -67,6 +67,7 @@ public class LuceneIndex {
         try {
             Directory dir = FSDirectory.open(new File(culIndexPath));
             Analyzer analyzer = new EnglishAnalyzer(Version.LUCENE_40);
+            //Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
             IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_40, analyzer);
             iwc.setSimilarity(new BM25Similarity());
 

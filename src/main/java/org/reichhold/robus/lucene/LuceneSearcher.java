@@ -47,6 +47,7 @@ public class LuceneSearcher {
             reader = DirectoryReader.open(FSDirectory.open(new File(index)));
             searcher = new IndexSearcher(reader);
             analyzer = new EnglishAnalyzer(Version.LUCENE_40);
+            //analyzer = new StandardAnalyzer(Version.LUCENE_40);
             in = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
             parser = new QueryParser(Version.LUCENE_40, field, analyzer);
             searcher.setSimilarity(new BM25Similarity());
@@ -137,7 +138,7 @@ public class LuceneSearcher {
             }
             result.setDocuments(docs);
 
-            printResult(result);
+            //printResult(result);
         } catch (ParseException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (IOException e) {
@@ -169,7 +170,7 @@ public class LuceneSearcher {
             }
             result.setDocuments(docs);
 
-            printResult(result);
+            //printResult(result);
         } catch (ParseException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (IOException e) {
@@ -186,7 +187,7 @@ public class LuceneSearcher {
         for (int i=0; i<hits.length; i++) {
             Document doc =  result.getDocuments().get(i);
             String path = doc.get("path");
-            //System.out.println((i+1) + ". " + "Role: " + result.getRoleName() + " Query:" + result.getQuery() + " Score:" + hits[i].score + " Path:"  + path);
+            System.out.println((i+1) + ". " + "Role: " + result.getRoleName() + " Query:" + result.getQuery() + " Score:" + hits[i].score + " Path:"  + path);
         }
     }
 }
