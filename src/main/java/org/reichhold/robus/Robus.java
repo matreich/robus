@@ -1,9 +1,6 @@
 package org.reichhold.robus;
 
-import org.reichhold.robus.citeulike.CulFileReader;
-import org.reichhold.robus.citeulike.CulUser;
-import org.reichhold.robus.citeulike.CulWebReader;
-import org.reichhold.robus.citeulike.RoleCreator;
+import org.reichhold.robus.citeulike.*;
 import org.reichhold.robus.db.DataStore;
 import org.reichhold.robus.jobs.DataCleaner;
 import org.reichhold.robus.jobs.LinkedInCrawler;
@@ -23,13 +20,13 @@ public class Robus {
         //loadUserRoles();
 
         //Load title and abstract from citeUlike.org
-        //loadCiteUlikeMetaData();
+        loadCiteUlikeMetaData();
 
         // Create Lucene Index
         //createCulIndex();
 
         Evaluator evaluator = new Evaluator();
-        evaluator.doMapEvaluation();
+        //evaluator.doMapEvaluation();
 
 
         /* create role vectors */
@@ -72,16 +69,23 @@ public class Robus {
         //reader.loadTitlesAndAbtractsForTag("internet");
         //reader.loadTitlesAndAbtractsForTag("database");
         DataStore store = new DataStore();
-        List<CulUser> users = store.getCulUsersByNumberOfTags(1500, 100);
+        List<CulUser> users = store.getCulUsersByNumberOfTags(75, 125, 100);
         for (CulUser user:users) {
-            String query = "select distinct(document) from cul_assignment where user = '" + user.getId() + "'";
+            String query = "select distinct(document) from cul_assignment_eval where user = '" + user.getId() + "'";
             reader.loadTitlesAndAbtractsForSqlQuery(query);
         }
     }
 
     private static void createCiteUlikeData() {
         CulFileReader cul = new CulFileReader();
-        cul.fileToDb();
+        //cul.fileToDb();
+
+        CulLinkoutsReader reader = new CulLinkoutsReader();
+        //reader.saveIds();
+
+        DoiReader doiReader = new DoiReader();
+        doiReader.loadAbstracts();
+        //doiReader.getAbtractsByDoi("");
     }
 
     private static void testNlpChunker() {
