@@ -20,13 +20,15 @@ public class Robus {
         //loadUserRoles();
 
         //Load title and abstract from citeUlike.org
-        loadCiteUlikeMetaData();
+        //loadCiteUlikeMetaData();
 
         // Create Lucene Index
-        //createCulIndex();
+        createCulIndex();
 
         Evaluator evaluator = new Evaluator();
-        //evaluator.doMapEvaluation();
+        evaluator.doMapEvaluation("CUL_90_110");
+        evaluator.doMapEvaluation("CUL_420_580");
+        evaluator.doMapEvaluation("CUL_1000_2000");
 
 
         /* create role vectors */
@@ -58,8 +60,11 @@ public class Robus {
         RoleCreator roles = new RoleCreator();
         //roles.createUserRoles("internet");
         //roles.createUserRoles();
+
         RoleWriter writer = new RoleWriter();
-        writer.updateRoles("culTest");
+        writer.updateRoles("CUL_90_110");
+        //writer.updateRoles("CUL_420_580");
+        //writer.updateRoles("CUL_1000_2000");
     }
 
     private static void loadCiteUlikeMetaData() {

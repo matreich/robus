@@ -9,8 +9,8 @@ import javax.persistence.*;
  * Date: 03.01.13
  */
 @Entity
-@Table (name = "cul_assignment")
-@org.hibernate.annotations.Table(appliesTo = "cul_assignment", indexes = { @Index(name = "assignment_user", columnNames = { "user" })})
+@Table (name = "cul_assignment_eval")
+@org.hibernate.annotations.Table(appliesTo = "cul_assignment_eval", indexes = { @Index(name = "assignment_user_eval", columnNames = { "user" })})
     public class CulAssignment {
 
     @Id

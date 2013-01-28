@@ -34,6 +34,7 @@ public class Role {
     @Column
     private String keyword2;
 
+    //@OneToMany (mappedBy = "role")
     @OneToMany (mappedBy = "role", cascade = CascadeType.ALL)
     private List<RoleTerm> roleTerms;
 

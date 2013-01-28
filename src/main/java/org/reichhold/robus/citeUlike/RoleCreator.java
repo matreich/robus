@@ -34,7 +34,7 @@ public class RoleCreator {
         store = new DataStore();
         List<CulUser> users = store.getCulUsersByTag(searchTag, 200);
 
-        createUserRoles(users, "CUL100");
+        createUserRoles(users, "CUL500");
     }
 
     public void createUserRoles() {
@@ -45,20 +45,12 @@ public class RoleCreator {
         //users.add(new CulUser("617e233adc60a7573c5e5025358250fd"));  //internet-marketing
         //users.add(new CulUser("fd72178f9f812a46ba4f7c599858cd7a"));  //security internet
 
-        /*users.add((CulUser) store.getSession().get(CulUser.class, "6c6607d9867205b88b4f024992e02d53"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "d028927e630155f99aa0c564644dcb23"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "c93dd93c877452c3d64fa8e148544d3b"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "ac4f8a03e1046b06f89c309a019f4d70"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "4b9e02136874b6a1b77903e066cbdc98"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "3f0f34326d630fa692b4fe91a62d4b92"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "2f4505a49b221ac047990e84d24c14ac"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "0556114be83c6b3c7228e08d92525c96"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "4115bb6343ed947b1f23550d879a9db9"));
-        users.add((CulUser) store.getSession().get(CulUser.class, "f143ae11633e71998e1111cd033b0d85"));*/
+        int min = 90;
+        int max = 110;
+        String orgName = "CUL_" + min + "_" + max;
+        users = store.getCulUsersByNumberOfTags(min, max, 120);
 
-        users = store.getCulUsersByNumberOfTags(1500, 100);
-
-        createUserRoles(users, "CUL1500");
+        createUserRoles(users, orgName);
     }
 
     private void createUserRoles(List<CulUser> users, String organisation) {

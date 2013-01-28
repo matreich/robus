@@ -17,19 +17,21 @@ import java.util.*;
  */
 public class Evaluator {
 
-    public void doMapEvaluation(){
+    public void doMapEvaluation(String organisation){
         //List<String> queries = new ArrayList<String>();
         //queries.add("internet");
         //queries.add("database");
         //queries.add("business");
 
+        int maxResults = 75;
+        int maxQueries = 25;
+
         DataStore store = new DataStore();
         List<Role> roles;
-        roles = store.getRolesByOrganisation("CUL1500");
+        roles = store.getRolesByOrganisation(organisation);
         //roles = store.getRoles("CiteULike", "marketing-internet");
 
         LuceneSearcher searcher = new LuceneSearcher();
-        int maxResults =100;
 
         Float mMapStandard = 0.0f;
         Float mMapRoles = 0.0f;
@@ -78,7 +80,6 @@ public class Evaluator {
 
             //load top n tags as queries
 
-            int maxQueries = 10;
             if (tagMap.size() < maxQueries ) {
                 maxQueries = tagMap.size();
             }
@@ -97,14 +98,16 @@ public class Evaluator {
             List<RoleSearchResult> resultsRole = searcher.doRoleSearches(role, queries, maxResults);
 
             Float mapRole = 0.0f;
-            mapRole = computeMAP(resultsRole, role.getName());
+            mapRole = computeMAP(resultsRole, role.getName(), organisation);
             mMapRoles += mapRole;
 
-            Float mapStandard = computeMAP(resultsStandard, role.getName());
+            Float mapStandard = computeMAP(resultsStandard, role.getName(), organisation);
             mMapStandard += mapStandard;
 
-            System.out.println("MAP for role-sensitive search | " + new DecimalFormat("0.0000").format(mapRole) +
-                    " | MAP for standard search | " + new DecimalFormat("0.0000").format(mapStandard) + " | for Role " + role.getName());
+            float imp = 1.0f/mapStandard * mapRole - 1;
+
+            //System.out.println("MAP for role-sensitive search | " + new DecimalFormat("0.0000").format(mapRole) +
+              //      " | MAP for standard search | " + new DecimalFormat("0.0000").format(mapStandard) + " | improvement | " + new DecimalFormat("#.#%").format(imp) + " | for Role " + role.getName());
         }
 
         mMapRoles = mMapRoles / roles.size();
@@ -119,7 +122,7 @@ public class Evaluator {
         //searcher.doRoleSearch("JavaDeveloper", "java");
     }
 
-    private Float computeMAP(List<RoleSearchResult> results, String role) {
+    private Float computeMAP(List<RoleSearchResult> results, String role, String organisation) {
         DataStore store = new DataStore();
         CulUser culUser = store.getCulUserByRoleName(role);
         if (culUser == null) {

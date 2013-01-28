@@ -13,9 +13,9 @@ import org.reichhold.robus.jobs.CleanJobAd;
 import org.reichhold.robus.jobs.JobAd;
 import org.reichhold.robus.jobs.Token;
 import org.reichhold.robus.roles.Role;
+import org.reichhold.robus.roles.RoleTerm;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -297,12 +297,15 @@ public class DataStore {
      * where X = (numberRoles - 1) / 2
      * @return number of deleted entries (role_terms)
      */
-    public Integer deleteTermsByFrequency()
+    public Integer deleteTermsByFrequency(String organisation)
     {
         session = InitSessionFactory.getInstance().openSession();
         Transaction tx = session.beginTransaction();
 
-        Integer numberRoles = ((Long)session.createQuery("select count(*) from Role").uniqueResult()).intValue();
+        /*Integer numberRoles = ((Long)session.createQuery("select count(*) from Role where organisation=:organisation")
+                .setParameter("organisation", organisation)
+                .uniqueResult())
+                .intValue();
 
         int minFreq;
         minFreq = numberRoles > 2 ? (numberRoles - 1) / 2 : 1;
@@ -313,7 +316,70 @@ public class DataStore {
 
         int rows = session.createSQLQuery(query)
                 .setParameter("treshold", minFreq)
-                .executeUpdate();
+                .executeUpdate();*/
+
+        List<Role> roles = session.createQuery(" from Role where organisation=:organisation")
+                .setParameter("organisation", organisation)
+                .list();
+
+        Map<String, Integer> terms = new HashMap<String, Integer>();
+        int minFreq;
+        minFreq = roles.size() > 2 ? (roles.size() - 1) / 2 : 1;
+
+        for(Role role:roles) {
+            for(RoleTerm term:role.getRoleTerms()) {
+
+                if (terms.containsKey(term.getTerm())) {
+                    //increase number of occurences
+                    terms.put(term.getTerm(), terms.get(term.getTerm()) + 1);
+
+                }
+                else {
+                    terms.put(term.getTerm(), 1);
+                }
+            }
+
+        }
+
+        List<String> toRemove = new ArrayList<String>();
+        Iterator it = terms.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pairs = (Map.Entry)it.next();
+            if((Integer)pairs.getValue() >= minFreq){
+                toRemove.add((String) pairs.getKey());
+            }
+            //it.remove(); // avoids a ConcurrentModificationException
+        }
+
+        int rows = 0;
+        for(Role role:roles) {
+
+            //List<RoleTerm> deleteTerms = new ArrayList<RoleTerm>();
+            String deleteClause = "";
+            for(RoleTerm rt:role.getRoleTerms())  {
+                if (toRemove.contains(rt.getTerm())) {
+                    //deleteTerms.add(rt);
+                    deleteClause = deleteClause + rt.getTermId() + ", ";
+                    System.out.println("DELETING " + rt.getTerm());
+                    rows++;
+
+                }
+            }
+
+            if (deleteClause.length() < 1) {
+                continue;
+            }
+
+            if (deleteClause.endsWith(", ")) {
+                deleteClause = deleteClause.substring(0, deleteClause.length() -2 );
+            }
+
+            String query = "delete from role_term where term_id in (" + deleteClause + ")";
+
+            session.createSQLQuery(query)
+                    .executeUpdate();
+
+        }
 
         tx.commit();
         session.close();
@@ -348,13 +414,39 @@ public class DataStore {
                 counter = counter + 1;
 
             } catch (Exception ex) {
-                //ex.printStackTrace();
+                ex.printStackTrace();
             }
         }
         mySession.flush();
         mySession.clear();
         tx.commit();
         return counter;
+    }
+
+    public long saveCulDocuments(List<CulDocument> entities, boolean openSession) {
+        long counter = 0;
+
+        if (openSession) {
+            return saveCulDocuments(entities);
+        }
+        else {
+            Transaction tx = session.beginTransaction();
+
+            for (CulDocument e:entities)
+            {
+                try {
+                    session.saveOrUpdate(e);
+                    counter = counter + 1;
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+                session.flush();
+                session.clear();
+                tx.commit();
+            return counter;
+        }
     }
 
     public long saveCulTags(List<CulTag> entities) {
@@ -481,7 +573,7 @@ public class DataStore {
     }
 
     public List<CulUser> getCulUsersByTag(String term, int maxResults) {
-        //select a.user, count(a.user) number from cul_assignment a where a.tag = 'java' group by a.user order by number desc;
+        //select a.user, count(a.user) number from cul_assignment_eval a where a.tag = 'java' group by a.user order by number desc;
         CulTag tag = new CulTag();
         tag.setTerm(term);
 
@@ -497,14 +589,12 @@ public class DataStore {
         return result;
     }
 
-    public List<CulUser> getCulUsersByNumberOfTags(int numberTags, int maxResults) {
+    public List<CulUser> getCulUsersByNumberOfTags(int min, int max, int maxResults) {
 
-        int min = numberTags - 50;
-        int max = numberTags + 50;
         Transaction tx = session.beginTransaction();
 
-        Query q = session.createSQLQuery("select user from ( select user, count(*) c from cul_assignment group by user) ca2 where c > :min and c < :max");
-        //Query q = session.createSQLQuery("select user from ( select user, count(*) c from cul_assignment group by user) ca2 where c > 98 and c < 102");
+        Query q = session.createSQLQuery("select user from ( select user, count(*) c from cul_assignment_eval group by user) ca2 where c > :min and c < :max");
+        //Query q = session.createSQLQuery("select user from ( select user, count(*) c from cul_assignment_eval group by user) ca2 where c > 98 and c < 102");
         q.setParameter("min", min);
         q.setParameter("max", max);
         q.setMaxResults(maxResults);
@@ -523,6 +613,8 @@ public class DataStore {
     public CulUser getCulUserByRoleName(String role) {
         Transaction tx = session.beginTransaction();
 
+        //System.out.println("Loading CulUser for role " + role);
+
         Query q = session.createQuery( "from CulUser where robusRole = :role" );
         q.setParameter("role", role);
         CulUser user = (CulUser) q.uniqueResult();
@@ -536,7 +628,7 @@ public class DataStore {
 
         CulTag tag = (CulTag) session.get(CulTag.class, tagTerm);
 
-        Query q = session.createSQLQuery("select distinct(document) from cul_assignment where tag = :tag");
+        Query q = session.createSQLQuery("select distinct(document) from cul_assignment_eval where tag = :tag");
         q.setParameter("tag", tag);
         //and (user = 'fd72178f9f812a46ba4f7c599858cd7a' or user = '617e233adc60a7573c5e5025358250fd')
 
@@ -562,7 +654,7 @@ public class DataStore {
         return result;
     }
 
-    public List<CulDocument> getDocumentsBySqlQuery(String query) {
+    public List<CulDocument> getDocumentsBySqlQuery(String query, int maxResults, boolean getEmptyDocsOnly) {
         Transaction tx = session.beginTransaction();
 
         Query q = session.createSQLQuery(query);
@@ -574,12 +666,12 @@ public class DataStore {
 
             CulDocument doc = (CulDocument) session.get(CulDocument.class, (String)results.get(0));
 
-            if(!StringUtils.isNullOrEmpty(doc.getPath())) {
+            if(getEmptyDocsOnly && !StringUtils.isNullOrEmpty(doc.getPath())) {
                 continue;
             }
 
             result.add(doc);
-            if (result.size() == 100) {
+            if (result.size() == maxResults) {
                 break;
             }
         }

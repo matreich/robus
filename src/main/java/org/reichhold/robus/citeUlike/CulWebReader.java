@@ -41,7 +41,12 @@ public class CulWebReader {
         List<CulDocument> docs = store.getEmptyCulDocuments(number);
 
         for (CulDocument doc : docs) {
+
+            try {
             setCulDocumentMetaData(doc);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         store.saveOrUpdateObjects(docs, "CulDocument");
         store.closeSession();
@@ -57,7 +62,11 @@ public class CulWebReader {
         try {
             URL u = new URL(url);
             URLConnection hc = u.openConnection();
-            hc.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.7; de-AT; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
+            //hc.setRequestProperty("User-Agent", "Mozilla/4.0 (Macintosh; U; Intel Mac OS X 10.3; de-DE; rv:1.9.2.2) Gecko/20100316 Firefox/3.5.1");
+            //hc.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 5.1)");
+            //hc.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.1) Gecko/2008070208 Firefox/3.0.1");
+            //hc.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.0; de-AT) AppleWebKit/525.13 (KHTML, like Gecko) Chrome/0.2.149.29 Safari/525.13");
+            hc.setRequestProperty("User-Agent", "Opera/9.1 (Windows NT 6.0 U; en)");
             is = hc.getInputStream();
             //is = new URL(url).openStream();
 
@@ -85,6 +94,7 @@ public class CulWebReader {
                     System.out.println("Abstract too long for doc " + doc.getId());
                 }
                 doc.setContentAbstract(abs);
+                //System.out.println(doc.getId() + " " + doc.getContentAbstract());
             }
             else {
                 doc.setContentAbstract("n/a");
@@ -138,11 +148,30 @@ public class CulWebReader {
     }
 
 
-    public void loadTitlesAndAbtractsForQuery(String query) {
+    public void loadTitlesAndAbtractsForTag(String query) {
 
         while (true) {
             store = new DataStore();
             List<CulDocument> docs = store.getDocumentsByTag(query);
+
+            if (docs.size() == 0) {
+                return;
+            }
+
+            for (CulDocument doc : docs) {
+                setCulDocumentMetaData(doc);
+            }
+            store.saveOrUpdateObjects(docs, "CulDocument");
+            store.closeSession();
+            System.out.println(docs.size() + " docs processed");
+        }
+    }
+
+    public void loadTitlesAndAbtractsForSqlQuery(String query) {
+
+        while (true) {
+            store = new DataStore();
+            List<CulDocument> docs = store.getDocumentsBySqlQuery(query, 100, true);
 
             if (docs.size() == 0) {
                 return;

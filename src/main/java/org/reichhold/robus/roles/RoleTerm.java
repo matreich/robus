@@ -20,6 +20,7 @@ public class RoleTerm implements Comparable<RoleTerm> {
     @Column (name = "weight" )
     private Float weight;
 
+    //@ManyToOne
     @ManyToOne ( cascade = CascadeType.ALL )
     @JoinColumn (name = "role")
     private Role role;

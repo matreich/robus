@@ -8,7 +8,7 @@ import java.util.List;
  * Date: 03.01.13
  */
 @Entity
-@Table(name = "cul_document")
+@Table(name = "cul_document_eval")
 public class CulDocument {
 
     @Id
@@ -24,6 +24,12 @@ public class CulDocument {
     @Column (name = "title")
     private String title;
 
+    @Column (name = "doi")
+    private String doi;
+
+    @Column (name = "pmid")
+    private String pmid;
+
     @OneToMany(mappedBy = "document", cascade = CascadeType.ALL)
     private List<CulAssignment> assignments;
 
@@ -36,6 +42,22 @@ public class CulDocument {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getDoi() {
+        return doi;
+    }
+
+    public void setDoi(String doi) {
+        this.doi = doi;
+    }
+
+    public String getPmid() {
+        return pmid;
+    }
+
+    public void setPmid(String pmid) {
+        this.pmid = pmid;
     }
 
     public String getPath() {

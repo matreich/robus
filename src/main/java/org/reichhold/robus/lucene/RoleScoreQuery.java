@@ -36,7 +36,7 @@ public class RoleScoreQuery extends CustomScoreQuery {
             @Override
             public float customScore(int doc, float subQueryScore, float valSrcScore){
                 //merge scores; formular = http://research.microsoft.com/pubs/145110/sheldonssc-lambdamerge-wsdm11.pdf
-                float weight = 0.1f;
+                float weight = 0.09f;
 
                 /*System.out.println(" ROLE SCORE " + valSrcScore +  " // " + subQueryScore);
                 if (valSrcScore == 0) {
